@@ -4,16 +4,21 @@ struct PrayerCardView: View {
     let prayer: PrayerCard
     let timeAgo: String
     let isPulsing: Bool
+    let isActive: Bool
     let onPray: () -> Void
 
     @State private var appeared: Bool = false
+    @State private var bloomActive: Bool = false
+    @State private var breathePhase: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 20) {
                 Image(systemName: "quote.opening")
                     .font(.system(size: 28, weight: .ultraLight))
-                    .foregroundStyle(Theme.goldAccent.opacity(0.5))
+                    .foregroundStyle(Theme.goldAccent.opacity(isActive ? 1.0 : 0.5))
+                    .opacity(isActive ? (breathePhase ? 1.0 : 0.6) : 0.5)
+                    .animation(.easeInOut(duration: 4).repeatForever(autoreverses: true), value: breathePhase)
                     .padding(.top, 4)
 
                 Text(prayer.text)
@@ -69,43 +74,7 @@ struct PrayerCardView: View {
                         .foregroundStyle(Theme.textLight)
                 }
 
-                Button {
-                    onPray()
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: prayer.isPrayingByMe ? "hands.clap.fill" : "hands.clap")
-                            .font(.system(size: 15, weight: .medium))
-                            .symbolEffect(.bounce, value: isPulsing)
-
-                        Text(prayer.isPrayingByMe ? "Praying with them" : "I'm Praying")
-                            .font(.system(size: 14, weight: .semibold, design: .serif))
-                    }
-                    .foregroundStyle(prayer.isPrayingByMe ? .white : Theme.goldDark)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(
-                        Group {
-                            if prayer.isPrayingByMe {
-                                LinearGradient(
-                                    colors: [Theme.goldAccent, Theme.goldDark],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            } else {
-                                Color.clear
-                            }
-                        }
-                    )
-                    .clipShape(Capsule())
-                    .overlay(
-                        Capsule()
-                            .stroke(
-                                prayer.isPrayingByMe ? Color.clear : Theme.goldAccent.opacity(0.5),
-                                lineWidth: 1.5
-                            )
-                    )
-                }
-                .sensoryFeedback(.impact(flexibility: .soft), trigger: prayer.isPrayingByMe)
+                prayButton
             }
             .padding(.bottom, 24)
         }
@@ -126,6 +95,79 @@ struct PrayerCardView: View {
             withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
                 appeared = true
             }
+            breathePhase = true
+        }
+    }
+
+    private var prayButton: some View {
+        Button {
+            onPray()
+            if !prayer.isPrayingByMe {
+                triggerBloom()
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: prayer.isPrayingByMe ? "hands.clap.fill" : "hands.clap")
+                    .font(.system(size: 15, weight: .medium))
+                    .symbolEffect(.bounce, value: isPulsing)
+
+                Text(prayer.isPrayingByMe ? "Praying with them" : "I'm Praying")
+                    .font(.system(size: 14, weight: .semibold, design: .serif))
+            }
+            .foregroundStyle(prayer.isPrayingByMe ? .white : Theme.goldDark)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(
+                ZStack {
+                    if prayer.isPrayingByMe {
+                        LinearGradient(
+                            colors: [Theme.goldAccent, Theme.goldDark],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    } else {
+                        Color.clear
+                    }
+
+                    if bloomActive {
+                        Capsule()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Theme.divineGold.opacity(0.6),
+                                        Theme.divineGoldLight.opacity(0.3),
+                                        Theme.goldAccent.opacity(0)
+                                    ],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 120
+                                )
+                            )
+                            .blur(radius: 16)
+                            .scaleEffect(bloomActive ? 1.8 : 0.5)
+                            .opacity(bloomActive ? 0 : 0.8)
+                    }
+                }
+            )
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(
+                        prayer.isPrayingByMe ? Theme.divineGold : Theme.goldAccent.opacity(0.5),
+                        lineWidth: prayer.isPrayingByMe ? 2 : 1.5
+                    )
+            )
+        }
+        .sensoryFeedback(.impact(flexibility: .soft), trigger: prayer.isPrayingByMe)
+    }
+
+    private func triggerBloom() {
+        withAnimation(.easeOut(duration: 0.6)) {
+            bloomActive = true
+        }
+        Task {
+            try? await Task.sleep(for: .milliseconds(650))
+            bloomActive = false
         }
     }
 }

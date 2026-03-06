@@ -3,7 +3,7 @@ import SwiftUI
 struct CommunityPrayerWallView: View {
     @State private var viewModel = CommunityViewModel()
     @State private var hasAppeared: Bool = false
-    @State private var currentIndex: Int = 0
+    @State private var scrolledID: UUID?
 
     var body: some View {
         ZStack {
@@ -19,7 +19,7 @@ struct CommunityPrayerWallView: View {
 
                 titleSection
                     .padding(.top, 8)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 12)
 
                 Spacer(minLength: 0)
 
@@ -33,6 +33,8 @@ struct CommunityPrayerWallView: View {
                 navigationHint
                     .padding(.bottom, 24)
             }
+
+            floatingSubmitButton
         }
     }
 
@@ -97,24 +99,45 @@ struct CommunityPrayerWallView: View {
     }
 
     private var cardCarousel: some View {
-        TabView(selection: $currentIndex) {
-            ForEach(Array(viewModel.prayers.enumerated()), id: \.element.id) { index, prayer in
-                PrayerCardView(
-                    prayer: prayer,
-                    timeAgo: viewModel.timeAgo(from: prayer.timestamp),
-                    isPulsing: viewModel.prayingAnimationId == prayer.id
-                ) {
-                    withAnimation(.spring(duration: 0.35)) {
-                        viewModel.togglePraying(for: prayer.id)
+        ScrollView(.vertical) {
+            LazyVStack(spacing: 20) {
+                ForEach(viewModel.prayers) { prayer in
+                    PrayerCardView(
+                        prayer: prayer,
+                        timeAgo: viewModel.timeAgo(from: prayer.timestamp),
+                        isPulsing: viewModel.prayingAnimationId == prayer.id,
+                        isActive: scrolledID == prayer.id
+                    ) {
+                        withAnimation(.spring(duration: 0.35)) {
+                            viewModel.togglePraying(for: prayer.id)
+                        }
+                    }
+                    .containerRelativeFrame(.vertical) { height, _ in
+                        height * 0.65
+                    }
+                    .scrollTransition(.interactive) { content, phase in
+                        content
+                            .opacity(phase.isIdentity ? 1 : 0.4)
+                            .scaleEffect(phase.isIdentity ? 1 : 0.92)
+                            .blur(radius: phase.isIdentity ? 0 : 1.5)
                     }
                 }
-                .padding(.horizontal, 28)
-                .tag(index)
             }
+            .scrollTargetLayout()
         }
-        .tabViewStyle(.page(indexDisplayMode: .never))
-        .frame(maxHeight: 380)
-        .sensoryFeedback(.selection, trigger: currentIndex)
+        .scrollPosition(id: $scrolledID)
+        .scrollTargetBehavior(.viewAligned)
+        .scrollIndicators(.hidden)
+        .contentMargins(.horizontal, 28)
+        .sensoryFeedback(.selection, trigger: scrolledID)
+        .onAppear {
+            scrolledID = viewModel.prayers.first?.id
+        }
+    }
+
+    private var currentIndex: Int {
+        guard let scrolledID else { return 0 }
+        return viewModel.prayers.firstIndex(where: { $0.id == scrolledID }) ?? 0
     }
 
     private var cardIndicator: some View {
@@ -137,5 +160,32 @@ struct CommunityPrayerWallView: View {
         }
         .foregroundStyle(Theme.textLight.opacity(0.7))
         .opacity(hasAppeared ? 1 : 0)
+    }
+
+    private var floatingSubmitButton: some View {
+        VStack {
+            Spacer()
+            HStack {
+                Spacer()
+                Button {
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(Theme.goldAccent)
+                        .frame(width: 52, height: 52)
+                        .background(
+                            Circle()
+                                .fill(.white.opacity(0.85))
+                                .shadow(color: Theme.sandDark.opacity(0.12), radius: 12, y: 4)
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(Theme.goldAccent.opacity(0.5), lineWidth: 1.2)
+                        )
+                }
+                .padding(.trailing, 24)
+                .padding(.bottom, 90)
+            }
+        }
     }
 }
