@@ -9,80 +9,121 @@ struct PrayerCardView: View {
     @State private var appeared: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 10) {
-                Text(prayer.initials)
-                    .font(.system(size: 13, weight: .semibold, design: .serif))
-                    .foregroundStyle(Theme.cardBrown)
-                    .frame(width: 36, height: 36)
-                    .background(Theme.warmBeige.opacity(0.6))
-                    .clipShape(Circle())
+        VStack(spacing: 0) {
+            VStack(spacing: 20) {
+                Image(systemName: "quote.opening")
+                    .font(.system(size: 28, weight: .ultraLight))
+                    .foregroundStyle(Theme.goldAccent.opacity(0.5))
+                    .padding(.top, 4)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(prayer.displayName)
-                        .font(.system(size: 14, weight: .medium, design: .serif))
-                        .foregroundStyle(Theme.textDark)
+                Text(prayer.text)
+                    .font(.system(size: 18, weight: .regular, design: .serif))
+                    .italic()
+                    .foregroundStyle(Theme.textDark.opacity(0.9))
+                    .lineSpacing(7)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 8)
 
-                    Text(timeAgo)
-                        .font(.system(size: 11, design: .serif))
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Theme.goldAccent.opacity(0), Theme.goldAccent.opacity(0.4), Theme.goldAccent.opacity(0)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: 60, height: 1)
+            }
+            .padding(.top, 28)
+
+            Spacer(minLength: 16)
+
+            VStack(spacing: 16) {
+                HStack(spacing: 10) {
+                    Text(prayer.initials)
+                        .font(.system(size: 14, weight: .semibold, design: .serif))
+                        .foregroundStyle(Theme.cardBrown)
+                        .frame(width: 40, height: 40)
+                        .background(Theme.warmBeige.opacity(0.5))
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(Theme.goldAccent.opacity(0.3), lineWidth: 1)
+                        )
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(prayer.displayName)
+                            .font(.system(size: 14, weight: .medium, design: .serif))
+                            .foregroundStyle(Theme.textDark)
+
+                        Text(timeAgo)
+                            .font(.system(size: 11, design: .serif))
+                            .foregroundStyle(Theme.textLight)
+                    }
+
+                    Spacer()
+
+                    Text("\(prayer.prayingCount) praying")
+                        .font(.system(size: 11, weight: .medium, design: .serif))
                         .foregroundStyle(Theme.textLight)
                 }
-
-                Spacer()
-            }
-
-            Text(prayer.text)
-                .font(.system(size: 15, weight: .regular, design: .serif))
-                .foregroundStyle(Theme.textDark.opacity(0.85))
-                .lineSpacing(5)
-                .fixedSize(horizontal: false, vertical: true)
-
-            HStack {
-                Spacer()
 
                 Button {
                     onPray()
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 8) {
                         Image(systemName: prayer.isPrayingByMe ? "hands.clap.fill" : "hands.clap")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(.system(size: 15, weight: .medium))
                             .symbolEffect(.bounce, value: isPulsing)
 
-                        Text("I'm Praying")
-                            .font(.system(size: 12, weight: .medium, design: .serif))
-
-                        if prayer.prayingCount > 0 {
-                            Text("·")
-                                .font(.system(size: 12, weight: .bold))
-                            Text("\(prayer.prayingCount)")
-                                .font(.system(size: 12, weight: .semibold, design: .serif))
-                        }
+                        Text(prayer.isPrayingByMe ? "Praying with them" : "I'm Praying")
+                            .font(.system(size: 14, weight: .semibold, design: .serif))
                     }
-                    .foregroundStyle(prayer.isPrayingByMe ? Theme.goldDark : Theme.textMedium)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 9)
+                    .foregroundStyle(prayer.isPrayingByMe ? .white : Theme.goldDark)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
                     .background(
-                        Capsule()
-                            .fill(prayer.isPrayingByMe ? Theme.goldAccent.opacity(0.15) : Color.clear)
+                        Group {
+                            if prayer.isPrayingByMe {
+                                LinearGradient(
+                                    colors: [Theme.goldAccent, Theme.goldDark],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            } else {
+                                Color.clear
+                            }
+                        }
                     )
+                    .clipShape(Capsule())
                     .overlay(
                         Capsule()
-                            .stroke(prayer.isPrayingByMe ? Theme.goldAccent : Theme.sandDark.opacity(0.4), lineWidth: 1)
+                            .stroke(
+                                prayer.isPrayingByMe ? Color.clear : Theme.goldAccent.opacity(0.5),
+                                lineWidth: 1.5
+                            )
                     )
                 }
                 .sensoryFeedback(.impact(flexibility: .soft), trigger: prayer.isPrayingByMe)
             }
+            .padding(.bottom, 24)
         }
-        .padding(20)
+        .padding(.horizontal, 24)
+        .frame(maxHeight: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.white.opacity(0.75))
-                .shadow(color: Theme.sandDark.opacity(0.06), radius: 16, y: 6)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(.white.opacity(0.8))
+                .shadow(color: Theme.sandDark.opacity(0.08), radius: 24, y: 10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .stroke(Theme.goldAccent.opacity(0.12), lineWidth: 1)
+                )
         )
         .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 20)
+        .scaleEffect(appeared ? 1 : 0.95)
         .onAppear {
-            withAnimation(.easeOut(duration: 0.5)) {
+            withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
                 appeared = true
             }
         }

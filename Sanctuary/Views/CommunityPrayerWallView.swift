@@ -3,6 +3,7 @@ import SwiftUI
 struct CommunityPrayerWallView: View {
     @State private var viewModel = CommunityViewModel()
     @State private var hasAppeared: Bool = false
+    @State private var currentIndex: Int = 0
 
     var body: some View {
         ZStack {
@@ -16,16 +17,21 @@ struct CommunityPrayerWallView: View {
             VStack(spacing: 0) {
                 headerBar
 
-                ScrollView {
-                    VStack(spacing: 0) {
-                        titleSection
-                            .padding(.bottom, 28)
+                titleSection
+                    .padding(.top, 8)
+                    .padding(.bottom, 20)
 
-                        prayerFeed
-                    }
+                Spacer(minLength: 0)
+
+                cardCarousel
+
+                Spacer(minLength: 0)
+
+                cardIndicator
+                    .padding(.bottom, 16)
+
+                navigationHint
                     .padding(.bottom, 24)
-                }
-                .scrollIndicators(.hidden)
             }
         }
     }
@@ -83,7 +89,6 @@ struct CommunityPrayerWallView: View {
             .padding(.top, 4)
             .opacity(hasAppeared ? 1 : 0)
         }
-        .padding(.top, 12)
         .onAppear {
             withAnimation(.easeOut(duration: 0.6)) {
                 hasAppeared = true
@@ -91,9 +96,9 @@ struct CommunityPrayerWallView: View {
         }
     }
 
-    private var prayerFeed: some View {
-        LazyVStack(spacing: 14) {
-            ForEach(viewModel.prayers) { prayer in
+    private var cardCarousel: some View {
+        TabView(selection: $currentIndex) {
+            ForEach(Array(viewModel.prayers.enumerated()), id: \.element.id) { index, prayer in
                 PrayerCardView(
                     prayer: prayer,
                     timeAgo: viewModel.timeAgo(from: prayer.timestamp),
@@ -103,8 +108,34 @@ struct CommunityPrayerWallView: View {
                         viewModel.togglePraying(for: prayer.id)
                     }
                 }
+                .padding(.horizontal, 28)
+                .tag(index)
             }
         }
-        .padding(.horizontal, 20)
+        .tabViewStyle(.page(indexDisplayMode: .never))
+        .frame(maxHeight: 380)
+        .sensoryFeedback(.selection, trigger: currentIndex)
+    }
+
+    private var cardIndicator: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<viewModel.prayers.count, id: \.self) { index in
+                Capsule()
+                    .fill(index == currentIndex ? Theme.goldAccent : Theme.sandDark.opacity(0.3))
+                    .frame(width: index == currentIndex ? 20 : 6, height: 6)
+                    .animation(.spring(duration: 0.3), value: currentIndex)
+            }
+        }
+    }
+
+    private var navigationHint: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "hand.draw")
+                .font(.system(size: 11))
+            Text("Swipe to read more prayers")
+                .font(.system(size: 11, weight: .medium, design: .serif))
+        }
+        .foregroundStyle(Theme.textLight.opacity(0.7))
+        .opacity(hasAppeared ? 1 : 0)
     }
 }
