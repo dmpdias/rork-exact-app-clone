@@ -88,6 +88,7 @@ struct SanctuaryRoomCard: View {
     let isActive: Bool
 
     @State private var glowPhase: Bool = false
+    @State private var showInterior: Bool = false
 
     private let avatarColors: [Color] = [
         Color(red: 0.72, green: 0.62, blue: 0.52),
@@ -211,6 +212,7 @@ struct SanctuaryRoomCard: View {
 
     private var enterButton: some View {
         Button {
+            showInterior = true
         } label: {
             Text("Enter Sanctuary")
                 .font(.system(size: 15, weight: .medium, design: .serif))
@@ -222,6 +224,9 @@ struct SanctuaryRoomCard: View {
                         .stroke(Theme.goldAccent.opacity(0.5), lineWidth: 1)
                 )
         }
-        .sensoryFeedback(.impact(weight: .light), trigger: false)
+        .sensoryFeedback(.impact(weight: .light), trigger: showInterior)
+        .fullScreenCover(isPresented: $showInterior) {
+            SanctuaryRoomInteriorView(room: room)
+        }
     }
 }
