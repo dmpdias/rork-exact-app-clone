@@ -153,11 +153,11 @@ struct DayChainCircleView: View {
     private var circleBackground: some View {
         ZStack {
             Circle()
-                .fill(day.isFuture ? Theme.ghostedCircle.opacity(0.3) : Theme.deepCharcoal)
+                .fill(day.isFuture ? Theme.ghostedCircle.opacity(0.3) : Theme.cardBrown.opacity(0.85))
                 .frame(width: circleSize, height: circleSize)
 
             if day.percentage > 0 && day.percentage < 1.0 {
-                PartialFillCircle(percentage: animateIn ? day.percentage : 0)
+                PartialFillCircle(percentage: animateIn ? quantizedFill(day.percentage) : 0)
                     .fill(
                         LinearGradient(
                             colors: [Theme.divineGold.opacity(0.15), Theme.divineGold.opacity(0.4)],
@@ -176,6 +176,13 @@ struct DayChainCircleView: View {
         Image(systemName: "flame.fill")
             .font(.system(size: iconSize))
             .foregroundStyle(flameColor)
+    }
+
+    private func quantizedFill(_ pct: Double) -> Double {
+        if pct >= 1.0 { return 1.0 }
+        if pct >= 0.60 { return 0.75 }
+        if pct >= 0.30 { return 0.50 }
+        return 0.25
     }
 
     private var flameColor: Color {
