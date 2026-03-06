@@ -4,7 +4,6 @@ struct ScriptureCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SectionHeaderView(label: "SCRIPTURE", title: "A word for today.")
-                .padding(.horizontal, 20)
                 .padding(.bottom, 12)
 
             ZStack(alignment: .leading) {
@@ -59,7 +58,7 @@ struct ScriptureCardView: View {
                     .padding(20)
                 }
             }
-            .padding(.horizontal, 20)
         }
+        .padding(.horizontal, 20)
     }
 }

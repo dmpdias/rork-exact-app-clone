@@ -45,7 +45,6 @@ struct ActivityLogView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SectionHeaderView(label: "ACTIVITY LOG", title: "Your journey today.")
-                .padding(.horizontal, 20)
                 .padding(.bottom, 12)
 
             VStack(spacing: 0) {
@@ -72,8 +71,6 @@ struct ActivityLogView: View {
                             .strokeBorder(Theme.sandDark.opacity(0.15), lineWidth: 1)
                     )
             )
-            .padding(.horizontal, 20)
-
             Text("73 devotion points today")
                 .font(.system(.footnote, design: .serif))
                 .italic()
@@ -81,6 +78,7 @@ struct ActivityLogView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.top, 16)
         }
+        .padding(.horizontal, 20)
     }
 }
 

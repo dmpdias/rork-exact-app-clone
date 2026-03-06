@@ -14,7 +14,6 @@ struct DevotionScoreView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SectionHeaderView(label: "DEVOTION", title: "Your devotion, reflected.")
-                .padding(.horizontal, 20)
                 .padding(.bottom, 8)
 
             VStack(spacing: 20) {
@@ -76,8 +75,8 @@ struct DevotionScoreView: View {
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.horizontal, 20)
         }
+        .padding(.horizontal, 20)
     }
 
     private var glowHeadView: some View {

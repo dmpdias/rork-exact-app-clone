@@ -50,9 +50,9 @@ struct DayChainCircleView: View {
     @State private var pulseScale: CGFloat = 1.0
     @State private var pulseOpacity: Double = 0.5
 
-    private let circleSize: CGFloat = 46
-    private let medalRingSize: CGFloat = 56
-    private let iconSize: CGFloat = 16
+    private let circleSize: CGFloat = 40
+    private let medalRingSize: CGFloat = 48
+    private let iconSize: CGFloat = 14
 
     var body: some View {
         VStack(spacing: 8) {

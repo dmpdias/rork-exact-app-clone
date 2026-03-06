@@ -4,7 +4,6 @@ struct SpiritualMomentCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SectionHeaderView(label: "SPIRITUAL TODAY", title: "Today's guided moment.")
-                .padding(.horizontal, 20)
                 .padding(.bottom, 12)
 
             ZStack(alignment: .bottomLeading) {
@@ -46,8 +45,8 @@ struct SpiritualMomentCardView: View {
                 }
                 .padding(24)
             }
-            .padding(.horizontal, 20)
         }
+        .padding(.horizontal, 20)
     }
 }
 
