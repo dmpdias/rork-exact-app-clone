@@ -1,38 +1,23 @@
 import SwiftUI
 
 struct PrayerRoomsView: View {
-    @State private var selectedCountry: RoomCountry = .all
+    private let rooms: [PrayerRoom] = PrayerRoom.sanctuaryRooms
+    @State private var activeIndex: Int = 0
     @State private var hasAppeared: Bool = false
-    private let rooms: [PrayerRoom] = PrayerRoom.samples
-
-    private var filteredRooms: [PrayerRoom] {
-        if selectedCountry == .all { return rooms }
-        return rooms.filter { $0.countryFlag == selectedCountry.countryFlag }
-    }
-
-    private var topRooms: [PrayerRoom] {
-        Array(rooms.sorted { $0.activeNow > $1.activeNow }.prefix(3))
-    }
 
     var body: some View {
-        ScrollView(.vertical) {
-            VStack(spacing: 20) {
-                titleSection
-                    .padding(.top, 4)
+        VStack(spacing: 0) {
+            titleSection
+                .padding(.top, 4)
+                .padding(.bottom, 6)
 
-                countryFilterRow
+            goldenThread
+                .padding(.bottom, 0)
 
-                if !topRooms.isEmpty {
-                    topGroupsSection
-                }
-
-                allRoomsSection
-            }
-            .padding(.bottom, 24)
+            sanctuaryDeck
         }
-        .scrollIndicators(.hidden)
         .onAppear {
-            withAnimation(.easeOut(duration: 0.6)) {
+            withAnimation(.easeOut(duration: 0.7)) {
                 hasAppeared = true
             }
         }
@@ -46,7 +31,7 @@ struct PrayerRoomsView: View {
                 .opacity(hasAppeared ? 1 : 0)
                 .offset(y: hasAppeared ? 0 : 12)
 
-            Text("Unite in collective prayer")
+            Text("Enter a sanctuary of collective prayer")
                 .font(.system(size: 15, design: .serif))
                 .italic()
                 .foregroundStyle(Theme.textLight)
@@ -55,285 +40,188 @@ struct PrayerRoomsView: View {
         }
     }
 
-    private var countryFilterRow: some View {
-        ScrollView(.horizontal) {
-            HStack(spacing: 20) {
-                ForEach(RoomCountry.allCases, id: \.self) { country in
-                    Button {
-                        withAnimation(.spring(duration: 0.3)) {
-                            selectedCountry = country
-                        }
-                    } label: {
-                        VStack(spacing: 8) {
-                            ZStack {
-                                Circle()
-                                    .fill(selectedCountry == country ? Theme.textDark : Theme.sandLight)
-                                    .frame(width: 48, height: 48)
+    private var goldenThread: some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: [Theme.goldAccent.opacity(0.0), Theme.goldAccent.opacity(0.6), Theme.goldAccent.opacity(0.3)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .frame(width: 1, height: 32)
+            .opacity(hasAppeared ? 1 : 0)
+    }
 
-                                Text(country.flag)
-                                    .font(.system(size: 22))
-                            }
-
-                            Text(country.label)
-                                .font(.system(size: 11, weight: selectedCountry == country ? .semibold : .regular, design: .serif))
-                                .foregroundStyle(selectedCountry == country ? Theme.textDark : Theme.textLight)
+    private var sanctuaryDeck: some View {
+        ScrollView(.vertical) {
+            LazyVStack(spacing: 20) {
+                ForEach(Array(rooms.enumerated()), id: \.element.id) { index, room in
+                    SanctuaryRoomCard(room: room, isActive: activeIndex == index)
+                        .containerRelativeFrame(.vertical) { height, _ in
+                            height * 0.72
                         }
-                    }
-                    .sensoryFeedback(.selection, trigger: selectedCountry == country)
+                        .scrollTransition(.interactive) { content, phase in
+                            content
+                                .opacity(phase.isIdentity ? 1 : 0.3)
+                                .scaleEffect(phase.isIdentity ? 1 : 0.88)
+                                .blur(radius: phase.isIdentity ? 0 : 3)
+                        }
+                        .id(index)
                 }
             }
+            .scrollTargetLayout()
         }
-        .contentMargins(.horizontal, 24)
+        .scrollPosition(id: Binding(
+            get: { activeIndex as Int? },
+            set: { activeIndex = $0 ?? 0 }
+        ))
+        .scrollTargetBehavior(.viewAligned)
         .scrollIndicators(.hidden)
-    }
-
-    private var topGroupsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 6) {
-                Image(systemName: "flame.fill")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.goldAccent)
-                Text("TOP ROOMS")
-                    .font(.system(size: 12, weight: .semibold, design: .serif))
-                    .tracking(1.5)
-                    .foregroundStyle(Theme.textMedium)
-            }
-            .padding(.horizontal, 24)
-
-            ScrollView(.horizontal) {
-                HStack(spacing: 14) {
-                    ForEach(topRooms) { room in
-                        TopRoomCard(room: room)
-                            .opacity(hasAppeared ? 1 : 0)
-                            .offset(y: hasAppeared ? 0 : 10)
-                    }
-                }
-            }
-            .contentMargins(.horizontal, 24)
-            .scrollIndicators(.hidden)
-        }
-    }
-
-    private var allRoomsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 6) {
-                Image(systemName: "door.left.hand.open")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.goldAccent)
-                Text("ALL ROOMS")
-                    .font(.system(size: 12, weight: .semibold, design: .serif))
-                    .tracking(1.5)
-                    .foregroundStyle(Theme.textMedium)
-            }
-            .padding(.horizontal, 24)
-
-            LazyVStack(spacing: 12) {
-                ForEach(filteredRooms) { room in
-                    RoomListCard(room: room)
-                        .opacity(hasAppeared ? 1 : 0)
-                        .offset(y: hasAppeared ? 0 : 8)
-                }
-
-                if filteredRooms.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "door.left.hand.closed")
-                            .font(.system(size: 36))
-                            .foregroundStyle(Theme.textLight.opacity(0.5))
-                        Text("No rooms in this region yet")
-                            .font(.system(size: 15, design: .serif))
-                            .foregroundStyle(Theme.textLight)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 40)
-                }
-            }
-            .padding(.horizontal, 20)
-        }
+        .contentMargins(.horizontal, 24)
+        .sensoryFeedback(.selection, trigger: activeIndex)
     }
 }
 
-struct TopRoomCard: View {
+struct SanctuaryRoomCard: View {
     let room: PrayerRoom
+    let isActive: Bool
+
+    @State private var glowPhase: Bool = false
+
+    private let avatarColors: [Color] = [
+        Color(red: 0.72, green: 0.62, blue: 0.52),
+        Color(red: 0.62, green: 0.55, blue: 0.48),
+        Color(red: 0.78, green: 0.68, blue: 0.58),
+    ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Theme.warmBeige, Theme.sandDark.opacity(0.6)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 40, height: 40)
+        VStack(spacing: 0) {
+            Spacer(minLength: 20)
 
-                    Image(systemName: room.icon)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Theme.goldAccent)
-                }
-
-                if room.isLive {
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(.red)
-                            .frame(width: 6, height: 6)
-                        Text("LIVE")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(.red.opacity(0.8))
-                    }
-                }
-
-                Spacer()
-
-                Text(room.countryFlag)
-                    .font(.system(size: 18))
-            }
+            roomIcon
+                .padding(.bottom, 20)
 
             Text(room.name)
-                .font(.system(size: 16, weight: .semibold, design: .serif))
+                .font(.system(size: 26, weight: .regular, design: .serif))
                 .foregroundStyle(Theme.textDark)
-                .lineLimit(1)
+                .padding(.bottom, 8)
 
             Text(room.description)
-                .font(.system(size: 12, design: .serif))
+                .font(.system(size: 15, design: .serif))
+                .italic()
                 .foregroundStyle(Theme.textLight)
-                .lineLimit(2)
-                .frame(height: 32, alignment: .top)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 28)
 
-            Spacer(minLength: 0)
+            presenceRow
+                .padding(.bottom, 24)
 
-            HStack {
-                HStack(spacing: 4) {
-                    Image(systemName: "person.2.fill")
-                        .font(.system(size: 10))
-                    Text("\(room.activeNow) praying")
-                        .font(.system(size: 11, weight: .medium, design: .serif))
-                }
-                .foregroundStyle(Theme.goldDark)
+            enterButton
 
-                Spacer()
-
-                Button {
-                } label: {
-                    Text("Join")
-                        .font(.system(size: 12, weight: .semibold, design: .serif))
-                        .foregroundStyle(Theme.cream)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 6)
-                        .background(Theme.textDark, in: Capsule())
-                }
-            }
+            Spacer(minLength: 20)
         }
-        .padding(16)
-        .frame(width: 220, height: 200)
+        .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 24)
                 .fill(
                     LinearGradient(
-                        colors: [Theme.cream, Theme.sandLight],
+                        colors: [
+                            Theme.cream,
+                            Theme.sandLight,
+                            Theme.warmBeige.opacity(0.5),
+                        ],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Theme.warmBeige.opacity(0.4), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(Theme.goldAccent.opacity(0.15), lineWidth: 1)
         )
+        .clipShape(.rect(cornerRadius: 24))
     }
-}
 
-struct RoomListCard: View {
-    let room: PrayerRoom
+    private var roomIcon: some View {
+        ZStack {
+            Circle()
+                .fill(Theme.goldAccent.opacity(0.08))
+                .frame(width: 88, height: 88)
+                .scaleEffect(glowPhase ? 1.15 : 1.0)
+                .opacity(glowPhase ? 0.6 : 0.3)
 
-    var body: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Theme.warmBeige, Theme.sandDark.opacity(0.6)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 48, height: 48)
+            Circle()
+                .fill(Theme.goldAccent.opacity(0.12))
+                .frame(width: 72, height: 72)
+                .scaleEffect(glowPhase ? 1.08 : 1.0)
+                .opacity(glowPhase ? 0.8 : 0.5)
 
-                Image(systemName: room.icon)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(Theme.goldAccent)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(room.name)
-                        .font(.system(size: 15, weight: .semibold, design: .serif))
-                        .foregroundStyle(Theme.textDark)
-                        .lineLimit(1)
-
-                    Text(room.countryFlag)
-                        .font(.system(size: 14))
-
-                    if room.isLive {
-                        HStack(spacing: 3) {
-                            Circle()
-                                .fill(.red)
-                                .frame(width: 5, height: 5)
-                            Text("LIVE")
-                                .font(.system(size: 9, weight: .bold))
-                                .foregroundStyle(.red.opacity(0.8))
-                        }
-                    }
-                }
-
-                HStack(spacing: 12) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "person.2.fill")
-                            .font(.system(size: 9))
-                        Text("\(room.memberCount)")
-                            .font(.system(size: 11, weight: .medium))
-                    }
-                    .foregroundStyle(Theme.textLight)
-
-                    HStack(spacing: 3) {
-                        Circle()
-                            .fill(Theme.goldAccent)
-                            .frame(width: 5, height: 5)
-                        Text("\(room.activeNow) active")
-                            .font(.system(size: 11, weight: .medium, design: .serif))
-                    }
-                    .foregroundStyle(Theme.goldDark)
-                }
-            }
-
-            Spacer()
-
-            Button {
-            } label: {
-                Text("Join")
-                    .font(.system(size: 12, weight: .semibold, design: .serif))
-                    .foregroundStyle(Theme.cream)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 7)
-                    .background(Theme.textDark, in: Capsule())
-            }
-        }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
+            Circle()
                 .fill(
-                    LinearGradient(
-                        colors: [Theme.cream, Theme.sandLight],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                    RadialGradient(
+                        colors: [Theme.warmBeige, Theme.sandLight],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 28
                     )
                 )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(Theme.warmBeige.opacity(0.4), lineWidth: 0.5)
-        )
+                .frame(width: 56, height: 56)
+
+            Image(systemName: room.icon)
+                .font(.system(size: 24, weight: .medium))
+                .foregroundStyle(Theme.goldAccent)
+        }
+        .onAppear {
+            withAnimation(
+                .easeInOut(duration: 2.4)
+                .repeatForever(autoreverses: true)
+            ) {
+                glowPhase = true
+            }
+        }
+    }
+
+    private var presenceRow: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: -8) {
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .fill(avatarColors[index].opacity(0.6))
+                        .frame(width: 28, height: 28)
+                        .overlay(
+                            Circle()
+                                .stroke(Theme.cream, lineWidth: 2)
+                        )
+                        .overlay(
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.cream.opacity(0.8))
+                        )
+                }
+            }
+
+            Text("\(room.activeNow) praying")
+                .font(.system(size: 14, weight: .medium, design: .serif))
+                .foregroundStyle(Theme.textMedium)
+        }
+    }
+
+    private var enterButton: some View {
+        Button {
+        } label: {
+            Text("Enter Sanctuary")
+                .font(.system(size: 15, weight: .medium, design: .serif))
+                .foregroundStyle(Theme.goldAccent)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 14)
+                .background(
+                    Capsule()
+                        .stroke(Theme.goldAccent.opacity(0.5), lineWidth: 1)
+                )
+        }
+        .sensoryFeedback(.impact(weight: .light), trigger: false)
     }
 }
