@@ -43,6 +43,12 @@ enum Theme {
 
     static let devotionArcGlow = Color(red: 0.78, green: 0.70, blue: 0.50)
 
+    static let divineGold = Color(red: 0.85, green: 0.72, blue: 0.35)
+    static let divineGoldLight = Color(red: 0.95, green: 0.85, blue: 0.55)
+    static let chainGold = Color(red: 0.80, green: 0.68, blue: 0.32)
+    static let deepCharcoal = Color(red: 0.18, green: 0.16, blue: 0.14)
+    static let ghostedCircle = Color(red: 0.35, green: 0.32, blue: 0.28)
+
     static let activityCardBg = Color(red: 0.96, green: 0.93, blue: 0.88)
 
     static let prayerLabel = Color(red: 0.72, green: 0.58, blue: 0.38)
