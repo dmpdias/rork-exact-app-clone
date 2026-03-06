@@ -19,6 +19,9 @@ struct CommunityPrayerWallView: View {
     @State private var hasAppeared: Bool = false
     @State private var scrolledID: UUID?
     @State private var activeSection: CommunitySection = .wall
+    @State private var activePrayerSession: PrayerCard?
+    @State private var showPrayerCompleted: Bool = false
+    @State private var completedPrayerName: String = ""
     @Namespace private var pillNamespace
 
     var body: some View {
@@ -46,10 +49,65 @@ struct CommunityPrayerWallView: View {
                     FellowshipView()
                 }
             }
+
+            if showPrayerCompleted {
+                prayerCompletedToast
+            }
         }
         .onChange(of: viewModel.selectedCategory) { _, _ in
             scrolledID = viewModel.filteredPrayers.first?.id
         }
+        .fullScreenCover(item: $activePrayerSession) { prayer in
+            PrayerSessionPlayerView(
+                prayer: prayer,
+                onDismiss: {
+                    activePrayerSession = nil
+                },
+                onComplete: {
+                    completedPrayerName = prayer.displayName
+                    viewModel.togglePraying(for: prayer.id)
+                    activePrayerSession = nil
+                    withAnimation(.spring(duration: 0.5)) {
+                        showPrayerCompleted = true
+                    }
+                    Task {
+                        try? await Task.sleep(for: .seconds(3))
+                        withAnimation(.easeOut(duration: 0.4)) {
+                            showPrayerCompleted = false
+                        }
+                    }
+                }
+            )
+        }
+    }
+
+    private var prayerCompletedToast: some View {
+        VStack {
+            HStack(spacing: 10) {
+                Image(systemName: "hands.sparkles.fill")
+                    .font(.system(size: 16))
+                    .foregroundStyle(Theme.goldAccent)
+
+                Text("Your prayer for \(completedPrayerName) was lifted")
+                    .font(.system(size: 14, weight: .medium, design: .serif))
+                    .foregroundStyle(Theme.textDark)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(
+                Capsule()
+                    .fill(.white.opacity(0.95))
+                    .shadow(color: Theme.sandDark.opacity(0.15), radius: 12, y: 4)
+                    .overlay(
+                        Capsule()
+                            .stroke(Theme.goldAccent.opacity(0.2), lineWidth: 0.5)
+                    )
+            )
+            .transition(.move(edge: .top).combined(with: .opacity))
+
+            Spacer()
+        }
+        .padding(.top, 60)
     }
 
     private var headerBar: some View {
@@ -188,12 +246,16 @@ struct CommunityPrayerWallView: View {
                         prayer: prayer,
                         timeAgo: viewModel.timeAgo(from: prayer.timestamp),
                         isPulsing: viewModel.prayingAnimationId == prayer.id,
-                        isActive: scrolledID == prayer.id
-                    ) {
-                        withAnimation(.spring(duration: 0.35)) {
-                            viewModel.togglePraying(for: prayer.id)
+                        isActive: scrolledID == prayer.id,
+                        onPray: {
+                            withAnimation(.spring(duration: 0.35)) {
+                                viewModel.togglePraying(for: prayer.id)
+                            }
+                        },
+                        onEnterPrayer: {
+                            activePrayerSession = prayer
                         }
-                    }
+                    )
                     .containerRelativeFrame(.vertical) { height, _ in
                         height * 0.78
                     }

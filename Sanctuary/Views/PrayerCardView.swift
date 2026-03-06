@@ -6,6 +6,7 @@ struct PrayerCardView: View {
     let isPulsing: Bool
     let isActive: Bool
     let onPray: () -> Void
+    let onEnterPrayer: () -> Void
 
     @State private var appeared: Bool = false
     @State private var bloomActive: Bool = false
@@ -73,6 +74,10 @@ struct PrayerCardView: View {
                     prayButton
 
                     prayingCountBadge
+
+                    Spacer()
+
+                    enterPrayerButton
                 }
                 .padding(.horizontal, 24)
             }
@@ -196,6 +201,28 @@ struct PrayerCardView: View {
             )
         }
         .sensoryFeedback(.impact(flexibility: .soft), trigger: prayer.isPrayingByMe)
+    }
+
+    private var enterPrayerButton: some View {
+        Button(action: onEnterPrayer) {
+            HStack(spacing: 6) {
+                Image(systemName: "hands.sparkles")
+                    .font(.system(size: 12, weight: .medium))
+                Text("Pray")
+                    .font(.system(size: 13, weight: .semibold, design: .serif))
+            }
+            .foregroundStyle(Theme.textDark)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(Theme.warmBeige.opacity(0.6))
+                    .overlay(
+                        Capsule()
+                            .stroke(Theme.goldAccent.opacity(0.3), lineWidth: 0.5)
+                    )
+            )
+        }
     }
 
     private var prayingCountBadge: some View {
