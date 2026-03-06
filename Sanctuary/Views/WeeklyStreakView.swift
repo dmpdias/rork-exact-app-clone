@@ -21,11 +21,15 @@ struct WeeklyStreakView: View {
                 ForEach(Array(days.enumerated()), id: \.element.id) { index, day in
                     let showChainLeft = index > 0 && days[index - 1].isCompleted && day.isCompleted
                     let showChainRight = index < days.count - 1 && days[index + 1].isCompleted && day.isCompleted
+                    let showDottedLeft = index > 0 && !(days[index - 1].isCompleted && day.isCompleted) && !day.isFuture && !days[index - 1].isFuture
+                    let showDottedRight = index < days.count - 1 && !(days[index + 1].isCompleted && day.isCompleted) && !day.isFuture && !days[index + 1].isFuture
 
-                    DayChainCircleView(
+                    ConstellationDayView(
                         day: day,
                         showChainLeft: showChainLeft,
                         showChainRight: showChainRight,
+                        showDottedLeft: showDottedLeft,
+                        showDottedRight: showDottedRight,
                         animateIn: animateIn
                     )
                     .frame(maxWidth: .infinity)
@@ -41,37 +45,39 @@ struct WeeklyStreakView: View {
     }
 }
 
-struct DayChainCircleView: View {
+struct ConstellationDayView: View {
     let day: WeekDay
     let showChainLeft: Bool
     let showChainRight: Bool
+    let showDottedLeft: Bool
+    let showDottedRight: Bool
     let animateIn: Bool
 
-    @State private var pulseScale: CGFloat = 1.0
-    @State private var pulseOpacity: Double = 0.5
+    @State private var glowOpacity: Double = 0.2
+    @State private var glowScale: CGFloat = 1.0
 
     private let circleSize: CGFloat = 40
-    private let medalRingSize: CGFloat = 48
+    private let outerRingSize: CGFloat = 48
     private let iconSize: CGFloat = 14
 
     var body: some View {
         VStack(spacing: 8) {
             ZStack {
-                chainLines
+                connectionLines
 
                 if day.isCurrent {
-                    pulsingRing
+                    breathingGlow
                 }
 
                 if day.isCompleted {
-                    medalRing
+                    goldenMedalRing
                 }
 
-                circleBackground
+                circleBody
 
                 flameIcon
             }
-            .frame(width: medalRingSize + 4, height: medalRingSize + 4)
+            .frame(width: outerRingSize + 8, height: outerRingSize + 8)
 
             Text(day.label)
                 .font(.system(.caption, design: .serif))
@@ -80,11 +86,11 @@ struct DayChainCircleView: View {
         }
     }
 
-    private var chainLines: some View {
+    private var connectionLines: some View {
         GeometryReader { geo in
             let centerY = geo.size.height / 2
             let centerX = geo.size.width / 2
-            let ringRadius = medalRingSize / 2
+            let ringRadius = outerRingSize / 2
 
             if showChainLeft {
                 Path { path in
@@ -92,12 +98,8 @@ struct DayChainCircleView: View {
                     path.addLine(to: CGPoint(x: centerX - ringRadius, y: centerY))
                 }
                 .stroke(
-                    LinearGradient(
-                        colors: [Theme.chainGold.opacity(0.4), Theme.divineGold],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    ),
-                    style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                    Theme.divineGold.opacity(0.6),
+                    style: StrokeStyle(lineWidth: 1, lineCap: .round)
                 )
                 .opacity(animateIn ? 1 : 0)
             }
@@ -108,67 +110,153 @@ struct DayChainCircleView: View {
                     path.addLine(to: CGPoint(x: geo.size.width, y: centerY))
                 }
                 .stroke(
-                    LinearGradient(
-                        colors: [Theme.divineGold, Theme.chainGold.opacity(0.4)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    ),
-                    style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                    Theme.divineGold.opacity(0.6),
+                    style: StrokeStyle(lineWidth: 1, lineCap: .round)
+                )
+                .opacity(animateIn ? 1 : 0)
+            }
+
+            if showDottedLeft {
+                Path { path in
+                    path.move(to: CGPoint(x: 0, y: centerY))
+                    path.addLine(to: CGPoint(x: centerX - ringRadius, y: centerY))
+                }
+                .stroke(
+                    Theme.divineGold.opacity(0.15),
+                    style: StrokeStyle(lineWidth: 0.5, lineCap: .round, dash: [3, 4])
+                )
+                .opacity(animateIn ? 1 : 0)
+            }
+
+            if showDottedRight {
+                Path { path in
+                    path.move(to: CGPoint(x: centerX + ringRadius, y: centerY))
+                    path.addLine(to: CGPoint(x: geo.size.width, y: centerY))
+                }
+                .stroke(
+                    Theme.divineGold.opacity(0.15),
+                    style: StrokeStyle(lineWidth: 0.5, lineCap: .round, dash: [3, 4])
                 )
                 .opacity(animateIn ? 1 : 0)
             }
         }
     }
 
-    private var pulsingRing: some View {
+    private var breathingGlow: some View {
         Circle()
-            .strokeBorder(Theme.divineGold.opacity(pulseOpacity), lineWidth: 2)
-            .frame(width: medalRingSize, height: medalRingSize)
-            .scaleEffect(pulseScale)
+            .fill(
+                RadialGradient(
+                    colors: [
+                        Theme.divineGold.opacity(glowOpacity * 0.4),
+                        Theme.divineGold.opacity(glowOpacity * 0.15),
+                        Color.clear
+                    ],
+                    center: .center,
+                    startRadius: circleSize / 2 - 2,
+                    endRadius: outerRingSize / 2 + 6
+                )
+            )
+            .frame(width: outerRingSize + 16, height: outerRingSize + 16)
+            .scaleEffect(glowScale)
             .onAppear {
                 withAnimation(
-                    .easeInOut(duration: 1.6)
+                    .easeInOut(duration: 2.0)
                     .repeatForever(autoreverses: true)
                 ) {
-                    pulseScale = 1.08
-                    pulseOpacity = 0.9
+                    glowOpacity = 0.7
+                    glowScale = 1.06
                 }
             }
     }
 
-    private var medalRing: some View {
+    private var goldenMedalRing: some View {
         Circle()
             .strokeBorder(
-                LinearGradient(
-                    colors: [Theme.divineGoldLight, Theme.divineGold, Theme.chainGold],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+                AngularGradient(
+                    colors: [
+                        Theme.divineGold.opacity(0.7),
+                        Theme.divineGoldLight.opacity(0.9),
+                        Theme.divineGold,
+                        Theme.chainGold.opacity(0.8),
+                        Theme.divineGold.opacity(0.7)
+                    ],
+                    center: .center
                 ),
-                lineWidth: 2.5
+                lineWidth: 1.5
             )
-            .frame(width: medalRingSize, height: medalRingSize)
-            .shadow(color: Theme.divineGold.opacity(0.4), radius: 4, x: 0, y: 0)
+            .frame(width: outerRingSize, height: outerRingSize)
+            .shadow(color: Theme.divineGold.opacity(0.3), radius: 6, x: 0, y: 0)
     }
 
-    private var circleBackground: some View {
+    private var circleBody: some View {
         ZStack {
             Circle()
-                .fill(day.isFuture ? Theme.ghostedCircle.opacity(0.3) : Theme.deepCharcoal)
+                .strokeBorder(circleStrokeColor, lineWidth: day.isFuture ? 0.5 : 1)
+                .background(Circle().fill(Color.clear))
                 .frame(width: circleSize, height: circleSize)
 
             if day.percentage > 0 && day.percentage < 1.0 {
-                PartialFillCircle(percentage: animateIn ? day.percentage : 0)
+                CircularFillArc(percentage: animateIn ? day.percentage : 0)
+                    .stroke(
+                        AngularGradient(
+                            colors: [
+                                Theme.divineGold.opacity(0.1),
+                                Theme.divineGold.opacity(0.5),
+                                Theme.divineGoldLight.opacity(0.6)
+                            ],
+                            center: .center,
+                            startAngle: .degrees(-90),
+                            endAngle: .degrees(-90 + 360 * day.percentage)
+                        ),
+                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                    )
+                    .frame(width: circleSize - 4, height: circleSize - 4)
+                    .animation(.easeOut(duration: 1.2).delay(0.3), value: animateIn)
+
+                Circle()
                     .fill(
-                        LinearGradient(
-                            colors: [Theme.divineGold.opacity(0.15), Theme.divineGold.opacity(0.4)],
-                            startPoint: .top,
-                            endPoint: .bottom
+                        RadialGradient(
+                            colors: [
+                                Theme.divineGold.opacity(animateIn ? 0.12 : 0),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: circleSize / 2 - 4
                         )
                     )
-                    .frame(width: circleSize, height: circleSize)
-                    .clipShape(Circle())
-                    .animation(.easeOut(duration: 1.0).delay(0.3), value: animateIn)
+                    .frame(width: circleSize - 6, height: circleSize - 6)
+                    .animation(.easeOut(duration: 1.2).delay(0.3), value: animateIn)
             }
+
+            if day.isCompleted {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Theme.divineGold.opacity(0.15),
+                                Theme.divineGold.opacity(0.05),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: circleSize / 2
+                        )
+                    )
+                    .frame(width: circleSize - 2, height: circleSize - 2)
+            }
+        }
+    }
+
+    private var circleStrokeColor: Color {
+        if day.isCompleted {
+            return Theme.divineGold.opacity(0.3)
+        } else if day.isCurrent {
+            return Theme.divineGold.opacity(0.25)
+        } else if day.isFuture {
+            return Theme.sandDark.opacity(0.15)
+        } else {
+            return Theme.sandDark.opacity(0.2)
         }
     }
 
@@ -182,16 +270,16 @@ struct DayChainCircleView: View {
         if day.isCompleted {
             return Theme.divineGold
         } else if day.isCurrent {
-            return Theme.divineGold.opacity(0.8)
+            return Theme.divineGold.opacity(0.7)
         } else if day.isFuture {
-            return Theme.textLight.opacity(0.2)
+            return Theme.sandDark.opacity(0.12)
         } else {
-            return Theme.textLight.opacity(0.35)
+            return Theme.sandDark.opacity(0.25)
         }
     }
 }
 
-struct PartialFillCircle: Shape, Animatable {
+struct CircularFillArc: Shape, Animatable {
     var percentage: Double
 
     var animatableData: Double {
@@ -201,9 +289,15 @@ struct PartialFillCircle: Shape, Animatable {
 
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        let fillHeight = rect.height * percentage
-        let yOffset = rect.maxY - fillHeight
-        path.addRect(CGRect(x: rect.minX, y: yOffset, width: rect.width, height: fillHeight))
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width, rect.height) / 2
+        path.addArc(
+            center: center,
+            radius: radius,
+            startAngle: .degrees(-90),
+            endAngle: .degrees(-90 + 360 * percentage),
+            clockwise: false
+        )
         return path
     }
 }
