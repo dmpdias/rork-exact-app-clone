@@ -18,7 +18,7 @@ struct ContentView: View {
             }
 
             Tab(value: 2) {
-                PrayerWallView()
+                PlaceholderTabView(title: "Community", icon: "person.2")
             } label: {
                 Label("Community", systemImage: "person.2")
             }
