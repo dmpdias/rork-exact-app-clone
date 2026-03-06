@@ -1,9 +1,22 @@
 import SwiftUI
 
+enum CommunitySection: String, CaseIterable {
+    case wall = "Wall"
+    case rooms = "Rooms"
+
+    var icon: String {
+        switch self {
+        case .wall: return "rectangle.stack.fill"
+        case .rooms: return "door.left.hand.open"
+        }
+    }
+}
+
 struct CommunityPrayerWallView: View {
     @State private var viewModel = CommunityViewModel()
     @State private var hasAppeared: Bool = false
     @State private var scrolledID: UUID?
+    @State private var activeSection: CommunitySection = .wall
 
     var body: some View {
         ZStack {
@@ -17,21 +30,15 @@ struct CommunityPrayerWallView: View {
             VStack(spacing: 0) {
                 headerBar
 
-                titleSection
-                    .padding(.top, 4)
-                    .padding(.bottom, 8)
+                sectionToggle
+                    .padding(.top, 2)
+                    .padding(.bottom, 10)
 
-                categoryFilterRow
-                    .padding(.bottom, 12)
-
-                cardCarousel
-
-                cardIndicator
-                    .padding(.top, 12)
-                    .padding(.bottom, 8)
-
-                navigationHint
-                    .padding(.bottom, 16)
+                if activeSection == .wall {
+                    wallContent
+                } else {
+                    PrayerRoomsView()
+                }
             }
         }
         .onChange(of: viewModel.selectedCategory) { _, _ in
@@ -56,15 +63,61 @@ struct CommunityPrayerWallView: View {
 
             Spacer()
 
-            Button {
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Theme.textDark)
-            }
+            Color.clear
+                .frame(width: 20, height: 20)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
+    }
+
+    private var sectionToggle: some View {
+        HStack(spacing: 0) {
+            ForEach(CommunitySection.allCases, id: \.self) { section in
+                Button {
+                    withAnimation(.spring(duration: 0.35)) {
+                        activeSection = section
+                    }
+                } label: {
+                    VStack(spacing: 8) {
+                        HStack(spacing: 6) {
+                            Image(systemName: section.icon)
+                                .font(.system(size: 14, weight: .medium))
+                            Text(section.rawValue)
+                                .font(.system(size: 14, weight: .medium, design: .serif))
+                        }
+                        .foregroundStyle(activeSection == section ? Theme.textDark : Theme.textLight)
+
+                        Rectangle()
+                            .fill(activeSection == section ? Theme.divineGold : Color.clear)
+                            .frame(height: 2)
+                            .frame(maxWidth: 60)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .sensoryFeedback(.selection, trigger: activeSection == section)
+            }
+        }
+        .padding(.horizontal, 32)
+    }
+
+    private var wallContent: some View {
+        VStack(spacing: 0) {
+            titleSection
+                .padding(.top, 4)
+                .padding(.bottom, 8)
+
+            categoryFilterRow
+                .padding(.bottom, 12)
+
+            cardCarousel
+
+            cardIndicator
+                .padding(.top, 12)
+                .padding(.bottom, 8)
+
+            navigationHint
+                .padding(.bottom, 16)
+        }
     }
 
     private var titleSection: some View {
