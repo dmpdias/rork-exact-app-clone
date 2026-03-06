@@ -22,19 +22,16 @@ struct CommunityPrayerWallView: View {
                     .padding(.bottom, 8)
 
                 categoryFilterRow
-                    .padding(.bottom, 16)
-
-                Spacer(minLength: 0)
+                    .padding(.bottom, 12)
 
                 cardCarousel
 
-                Spacer(minLength: 0)
-
                 cardIndicator
-                    .padding(.bottom, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
 
                 navigationHint
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 16)
             }
         }
         .onChange(of: viewModel.selectedCategory) { _, _ in
@@ -113,7 +110,7 @@ struct CommunityPrayerWallView: View {
 
     private var cardCarousel: some View {
         ScrollView(.vertical) {
-            LazyVStack(spacing: 20) {
+            LazyVStack(spacing: 24) {
                 ForEach(viewModel.filteredPrayers) { prayer in
                     PrayerCardView(
                         prayer: prayer,
@@ -126,13 +123,13 @@ struct CommunityPrayerWallView: View {
                         }
                     }
                     .containerRelativeFrame(.vertical) { height, _ in
-                        height * 0.62
+                        height * 0.78
                     }
                     .scrollTransition(.interactive) { content, phase in
                         content
-                            .opacity(phase.isIdentity ? 1 : 0.4)
-                            .scaleEffect(phase.isIdentity ? 1 : 0.92)
-                            .blur(radius: phase.isIdentity ? 0 : 1.5)
+                            .opacity(phase.isIdentity ? 1 : 0.35)
+                            .scaleEffect(phase.isIdentity ? 1 : 0.90)
+                            .blur(radius: phase.isIdentity ? 0 : 2)
                     }
                 }
             }
@@ -141,7 +138,7 @@ struct CommunityPrayerWallView: View {
         .scrollPosition(id: $scrolledID)
         .scrollTargetBehavior(.viewAligned)
         .scrollIndicators(.hidden)
-        .contentMargins(.horizontal, 28)
+        .contentMargins(.horizontal, 20)
         .sensoryFeedback(.selection, trigger: scrolledID)
         .onAppear {
             scrolledID = viewModel.filteredPrayers.first?.id

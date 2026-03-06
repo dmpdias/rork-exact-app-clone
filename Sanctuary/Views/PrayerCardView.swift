@@ -13,18 +13,21 @@ struct PrayerCardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 16) {
-                categoryTag
+            VStack(spacing: 16) {
+                Image(systemName: "quote.opening")
+                    .font(.system(size: 28, weight: .light))
+                    .foregroundStyle(Theme.goldAccent.opacity(0.5))
+                    .padding(.top, 8)
 
                 Text(prayer.text)
-                    .font(.system(size: 20, weight: .regular, design: .serif))
+                    .font(.system(size: 21, weight: .regular, design: .serif))
                     .foregroundStyle(Theme.textDark)
-                    .lineSpacing(6)
-                    .multilineTextAlignment(.leading)
+                    .lineSpacing(7)
+                    .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.top, 28)
-            .padding(.horizontal, 24)
+            .padding(.top, 32)
+            .padding(.horizontal, 28)
 
             Spacer(minLength: 20)
 
@@ -106,34 +109,6 @@ struct PrayerCardView: View {
                 appeared = true
             }
             breathePhase = true
-        }
-    }
-
-    private var categoryTag: some View {
-        Text(prayer.category.rawValue)
-            .font(.system(size: 12, weight: .semibold, design: .serif))
-            .foregroundStyle(categoryTagColor)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(categoryTagColor.opacity(0.1))
-            )
-            .overlay(
-                Capsule()
-                    .stroke(categoryTagColor.opacity(0.2), lineWidth: 0.5)
-            )
-    }
-
-    private var categoryTagColor: Color {
-        switch prayer.category {
-        case .all: return Theme.goldAccent
-        case .healing: return Color(red: 0.75, green: 0.42, blue: 0.42)
-        case .guidance: return Color(red: 0.42, green: 0.55, blue: 0.72)
-        case .gratitude: return Color(red: 0.72, green: 0.62, blue: 0.32)
-        case .family: return Color(red: 0.55, green: 0.65, blue: 0.45)
-        case .faith: return Color(red: 0.62, green: 0.48, blue: 0.68)
-        case .strength: return Color(red: 0.70, green: 0.50, blue: 0.38)
         }
     }
 
