@@ -17,8 +17,10 @@ struct PrayerRoomsView: View {
     var body: some View {
         ScrollView(.vertical) {
             VStack(spacing: 20) {
-                countryFilterRow
+                titleSection
                     .padding(.top, 4)
+
+                countryFilterRow
 
                 if !topRooms.isEmpty {
                     topGroupsSection
@@ -30,9 +32,26 @@ struct PrayerRoomsView: View {
         }
         .scrollIndicators(.hidden)
         .onAppear {
-            withAnimation(.easeOut(duration: 0.5)) {
+            withAnimation(.easeOut(duration: 0.6)) {
                 hasAppeared = true
             }
+        }
+    }
+
+    private var titleSection: some View {
+        VStack(spacing: 6) {
+            Text("Prayer Rooms")
+                .font(.system(size: 32, weight: .regular, design: .serif))
+                .foregroundStyle(Theme.textDark)
+                .opacity(hasAppeared ? 1 : 0)
+                .offset(y: hasAppeared ? 0 : 12)
+
+            Text("Unite in collective prayer")
+                .font(.system(size: 15, design: .serif))
+                .italic()
+                .foregroundStyle(Theme.textLight)
+                .opacity(hasAppeared ? 1 : 0)
+                .offset(y: hasAppeared ? 0 : 8)
         }
     }
 
@@ -48,7 +67,7 @@ struct PrayerRoomsView: View {
                         VStack(spacing: 8) {
                             ZStack {
                                 Circle()
-                                    .fill(selectedCountry == country ? Theme.textDark : Theme.warmBeige.opacity(0.6))
+                                    .fill(selectedCountry == country ? Theme.textDark : Theme.sandLight)
                                     .frame(width: 48, height: 48)
 
                                 Text(country.flag)
@@ -143,7 +162,7 @@ struct TopRoomCard: View {
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [Theme.cardBrown, Theme.cardOlive],
+                                colors: [Theme.warmBeige, Theme.sandDark.opacity(0.6)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -152,7 +171,7 @@ struct TopRoomCard: View {
 
                     Image(systemName: room.icon)
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Theme.goldLight)
+                        .foregroundStyle(Theme.goldAccent)
                 }
 
                 if room.isLive {
@@ -213,7 +232,7 @@ struct TopRoomCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(
                     LinearGradient(
-                        colors: [Theme.sandLight, Theme.warmBeige.opacity(0.5)],
+                        colors: [Theme.cream, Theme.sandLight],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -221,7 +240,7 @@ struct TopRoomCard: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Theme.goldAccent.opacity(0.2), lineWidth: 1)
+                .stroke(Theme.warmBeige.opacity(0.4), lineWidth: 0.5)
         )
     }
 }
@@ -235,7 +254,7 @@ struct RoomListCard: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [Theme.cardBrown.opacity(0.8), Theme.cardOlive.opacity(0.8)],
+                            colors: [Theme.warmBeige, Theme.sandDark.opacity(0.6)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -244,7 +263,7 @@ struct RoomListCard: View {
 
                 Image(systemName: room.icon)
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(Theme.goldLight)
+                    .foregroundStyle(Theme.goldAccent)
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -304,11 +323,17 @@ struct RoomListCard: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(Theme.sandLight.opacity(0.7))
+                .fill(
+                    LinearGradient(
+                        colors: [Theme.cream, Theme.sandLight],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(Theme.warmBeige.opacity(0.5), lineWidth: 0.5)
+                .stroke(Theme.warmBeige.opacity(0.4), lineWidth: 0.5)
         )
     }
 }
