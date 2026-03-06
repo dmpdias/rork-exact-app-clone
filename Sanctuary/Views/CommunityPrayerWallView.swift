@@ -3,11 +3,13 @@ import SwiftUI
 enum CommunitySection: String, CaseIterable {
     case wall = "Wall"
     case rooms = "Rooms"
+    case fellowship = "Fellowship"
 
     var icon: String {
         switch self {
         case .wall: return "rectangle.stack.fill"
         case .rooms: return "door.left.hand.open"
+        case .fellowship: return "person.3.fill"
         }
     }
 }
@@ -35,10 +37,13 @@ struct CommunityPrayerWallView: View {
                     .padding(.top, 2)
                     .padding(.bottom, 10)
 
-                if activeSection == .wall {
+                switch activeSection {
+                case .wall:
                     wallContent
-                } else {
+                case .rooms:
                     PrayerRoomsView()
+                case .fellowship:
+                    FellowshipView()
                 }
             }
         }
