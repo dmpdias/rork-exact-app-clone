@@ -17,6 +17,7 @@ struct CommunityPrayerWallView: View {
     @State private var hasAppeared: Bool = false
     @State private var scrolledID: UUID?
     @State private var activeSection: CommunitySection = .wall
+    @Namespace private var pillNamespace
 
     var body: some View {
         ZStack {
@@ -71,33 +72,46 @@ struct CommunityPrayerWallView: View {
     }
 
     private var sectionToggle: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             ForEach(CommunitySection.allCases, id: \.self) { section in
                 Button {
-                    withAnimation(.spring(duration: 0.35)) {
+                    withAnimation(.spring(duration: 0.4, bounce: 0.15)) {
                         activeSection = section
                     }
                 } label: {
-                    VStack(spacing: 8) {
-                        HStack(spacing: 6) {
-                            Image(systemName: section.icon)
-                                .font(.system(size: 14, weight: .medium))
+                    HStack(spacing: 6) {
+                        Image(systemName: section.icon)
+                            .font(.system(size: 15, weight: .medium))
+                        if activeSection == section {
                             Text(section.rawValue)
-                                .font(.system(size: 14, weight: .medium, design: .serif))
+                                .font(.system(size: 14, weight: .semibold, design: .serif))
+                                .transition(.asymmetric(
+                                    insertion: .opacity.combined(with: .scale(scale: 0.8, anchor: .leading)),
+                                    removal: .opacity.combined(with: .scale(scale: 0.8, anchor: .leading))
+                                ))
                         }
-                        .foregroundStyle(activeSection == section ? Theme.textDark : Theme.textLight)
-
-                        Rectangle()
-                            .fill(activeSection == section ? Theme.divineGold : Color.clear)
-                            .frame(height: 2)
-                            .frame(maxWidth: 60)
+                    }
+                    .foregroundStyle(activeSection == section ? Theme.textDark : Theme.textMedium)
+                    .padding(.horizontal, activeSection == section ? 18 : 14)
+                    .padding(.vertical, 10)
+                    .background {
+                        if activeSection == section {
+                            Capsule()
+                                .fill(Theme.sandLight)
+                                .shadow(color: Theme.sandDark.opacity(0.15), radius: 4, y: 2)
+                                .matchedGeometryEffect(id: "sectionPill", in: pillNamespace)
+                        }
                     }
                 }
-                .frame(maxWidth: .infinity)
-                .sensoryFeedback(.selection, trigger: activeSection == section)
+                .sensoryFeedback(.selection, trigger: activeSection)
             }
         }
-        .padding(.horizontal, 32)
+        .padding(5)
+        .background {
+            Capsule()
+                .fill(Theme.warmBeige.opacity(0.5))
+                .shadow(color: Theme.sandDark.opacity(0.08), radius: 8, y: 2)
+        }
     }
 
     private var wallContent: some View {
