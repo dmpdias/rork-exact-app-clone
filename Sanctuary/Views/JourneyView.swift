@@ -6,6 +6,7 @@ struct JourneyView: View {
     @State private var showDetail: Bool = false
     @State private var bloomCategory: JourneyCategory? = nil
     @State private var scrollOffset: CGFloat = 0
+    @State private var showInsights: Bool = false
 
     var body: some View {
         ZStack {
@@ -17,7 +18,17 @@ struct JourneyView: View {
                 .opacity(0.35)
                 .offset(y: scrollOffset * 0.05)
 
-            if showDetail, let category = selectedCategory {
+            if showInsights {
+                SavedInsightsView {
+                    withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
+                        showInsights = false
+                    }
+                }
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .scale(scale: 1.02)),
+                    removal: .opacity.combined(with: .scale(scale: 0.98))
+                ))
+            } else if showDetail, let category = selectedCategory {
                 JourneyCategoryDetailView(category: category) {
                     withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
                         showDetail = false
@@ -152,14 +163,26 @@ struct JourneyView: View {
         LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
             ForEach(JourneyCategory.allCases) { category in
                 JourneyCategoryCard(category: category) {
-                    bloomCategory = category
-                    withAnimation(.easeOut(duration: 0.35)) {}
-                    Task {
-                        try? await Task.sleep(for: .milliseconds(400))
-                        selectedCategory = category
-                        withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
-                            showDetail = true
-                            bloomCategory = nil
+                    if category == .savedInsights {
+                        bloomCategory = category
+                        withAnimation(.easeOut(duration: 0.35)) {}
+                        Task {
+                            try? await Task.sleep(for: .milliseconds(400))
+                            withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
+                                showInsights = true
+                                bloomCategory = nil
+                            }
+                        }
+                    } else {
+                        bloomCategory = category
+                        withAnimation(.easeOut(duration: 0.35)) {}
+                        Task {
+                            try? await Task.sleep(for: .milliseconds(400))
+                            selectedCategory = category
+                            withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
+                                showDetail = true
+                                bloomCategory = nil
+                            }
                         }
                     }
                 }
