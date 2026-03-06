@@ -24,7 +24,7 @@ struct ContentView: View {
             }
 
             Tab(value: 3) {
-                PlaceholderTabView(title: "Journey", icon: "book")
+                JourneyView()
             } label: {
                 Label("Journey", systemImage: "book")
             }
