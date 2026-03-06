@@ -4,6 +4,12 @@ struct DevotionScoreView: View {
     let score: Int = 73
     @State private var animatedProgress: Double = 0
     @State private var scoreOpacity: Double = 0
+    @State private var unfillPulse: Bool = false
+    @State private var glowHeadPulse: Bool = false
+
+    private let dotCount = 60
+    private let startAngle: Double = -90
+    private let totalArc: Double = 360
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -13,8 +19,13 @@ struct DevotionScoreView: View {
 
             VStack(spacing: 20) {
                 ZStack {
-                    DevotionArcView(progress: animatedProgress)
-                        .frame(height: 220)
+                    Canvas { context, size in
+                        drawRing(context: context, size: size)
+                    }
+                    .frame(width: 240, height: 240)
+
+                    glowHeadView
+                        .frame(width: 240, height: 240)
 
                     VStack(spacing: 4) {
                         Text("\(Int(animatedProgress * 100))")
@@ -33,8 +44,14 @@ struct DevotionScoreView: View {
                     withAnimation(.easeOut(duration: 0.4)) {
                         scoreOpacity = 1
                     }
-                    withAnimation(.easeOut(duration: 1.2).delay(0.15)) {
+                    withAnimation(.easeOut(duration: 1.4).delay(0.15)) {
                         animatedProgress = Double(score) / 100.0
+                    }
+                    withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                        unfillPulse = true
+                    }
+                    withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true).delay(1.6)) {
+                        glowHeadPulse = true
                     }
                 }
 
@@ -62,60 +79,120 @@ struct DevotionScoreView: View {
             .padding(.horizontal, 20)
         }
     }
-}
 
-struct DevotionArcView: View, Animatable {
-    var progress: Double
+    private var glowHeadView: some View {
+        GeometryReader { _ in
+            let radius: CGFloat = 100
+            let center = CGPoint(x: 120, y: 120)
+            let headAngleDeg = startAngle + animatedProgress * totalArc
+            let headAngleRad = headAngleDeg * .pi / 180
+            let hx = center.x + radius * cos(headAngleRad)
+            let hy = center.y + radius * sin(headAngleRad)
+            let glowScale = glowHeadPulse ? 1.3 : 0.9
 
-    var animatableData: Double {
-        get { progress }
-        set { progress = newValue }
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Theme.goldAccent.opacity(0.8),
+                            Theme.goldLight.opacity(0.3),
+                            Color.clear
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 16
+                    )
+                )
+                .frame(width: 32, height: 32)
+                .scaleEffect(glowScale)
+                .position(x: hx, y: hy)
+                .opacity(animatedProgress > 0.02 ? 1 : 0)
+        }
+        .allowsHitTesting(false)
     }
 
-    var body: some View {
-        Canvas { context, size in
-            let center = CGPoint(x: size.width / 2, y: size.height * 0.55)
-            let radius: CGFloat = min(size.width, size.height) * 0.42
-            let startAngle: Double = -210
-            let endAngle: Double = 30
-            let totalArc = endAngle - startAngle
-            let dotCount = 40
+    private func drawRing(context: GraphicsContext, size: CGSize) {
+        let center = CGPoint(x: size.width / 2, y: size.height / 2)
+        let radius: CGFloat = 100
+        let progress = animatedProgress
+        let pulseAmount = unfillPulse ? 0.35 : 0.12
 
-            for i in 0..<dotCount {
-                let fraction = Double(i) / Double(dotCount - 1)
-                let angleDeg = startAngle + fraction * totalArc
-                let angleRad = angleDeg * .pi / 180
+        for i in 0..<dotCount {
+            let fraction = Double(i) / Double(dotCount)
+            let angleDeg = startAngle + fraction * totalArc
+            let angleRad = angleDeg * .pi / 180
 
-                let x = center.x + radius * cos(angleRad)
-                let y = center.y + radius * sin(angleRad)
+            let x = center.x + radius * cos(angleRad)
+            let y = center.y + radius * sin(angleRad)
 
-                let isActive = fraction <= progress
-                let dotSize: CGFloat = isActive ? 5 : 3.5
-                let opacity: Double = isActive ? (0.5 + fraction * 0.5) : 0.2
+            let isActive = fraction <= progress
 
-                let color: Color = isActive ? Theme.devotionArcGlow : Theme.particleDot
+            if isActive {
+                let t = fraction / max(progress, 0.001)
+                let warmth = t
+                let baseColor = blendColor(from: Theme.goldDark, to: Theme.goldAccent, t: warmth)
+                let dotSize: CGFloat = 4.0 + t * 2.5
+                let opacity = 0.4 + t * 0.6
 
-                let rect = CGRect(
-                    x: x - dotSize / 2,
-                    y: y - dotSize / 2,
-                    width: dotSize,
-                    height: dotSize
-                )
-                context.fill(Circle().path(in: rect), with: .color(color.opacity(opacity)))
+                let rect = CGRect(x: x - dotSize / 2, y: y - dotSize / 2, width: dotSize, height: dotSize)
+                context.fill(Circle().path(in: rect), with: .color(baseColor.opacity(opacity)))
 
-                if isActive && fraction > 0.6 {
-                    let glowRect = CGRect(
-                        x: x - dotSize,
-                        y: y - dotSize,
-                        width: dotSize * 2,
-                        height: dotSize * 2
-                    )
-                    context.fill(
-                        Circle().path(in: glowRect),
-                        with: .color(Theme.particleGold.opacity(0.15))
-                    )
+                if t > 0.7 {
+                    let glowSize = dotSize * 2.5
+                    let glowRect = CGRect(x: x - glowSize / 2, y: y - glowSize / 2, width: glowSize, height: glowSize)
+                    let glowOpacity = (t - 0.7) / 0.3 * 0.2
+                    context.fill(Circle().path(in: glowRect), with: .color(Theme.goldLight.opacity(glowOpacity)))
                 }
+            } else {
+                let dotSize: CGFloat = 2.8
+                let opacity = pulseAmount
+
+                let rect = CGRect(x: x - dotSize / 2, y: y - dotSize / 2, width: dotSize, height: dotSize)
+                context.fill(Circle().path(in: rect), with: .color(Theme.sandDark.opacity(opacity)))
             }
         }
+
+        let shadowDotCount = 8
+        let shadowStart = progress
+        let shadowSpan = 0.08
+        for i in 0..<shadowDotCount {
+            let frac = Double(i) / Double(shadowDotCount)
+            let fraction = shadowStart + frac * shadowSpan
+            guard fraction <= 1.0 else { continue }
+
+            let angleDeg = startAngle + fraction * totalArc
+            let angleRad = angleDeg * .pi / 180
+            let x = center.x + radius * cos(angleRad)
+            let y = center.y + radius * sin(angleRad)
+
+            let fadeOpacity = 0.25 * (1.0 - frac)
+            let dotSize: CGFloat = 4.0 * (1.0 - frac * 0.5)
+
+            let rect = CGRect(x: x - dotSize / 2, y: y - dotSize / 2, width: dotSize, height: dotSize)
+            context.fill(Circle().path(in: rect), with: .color(Theme.goldAccent.opacity(fadeOpacity)))
+        }
+    }
+
+    private func blendColor(from: Color, to: Color, t: Double) -> Color {
+        let clamped = min(max(t, 0), 1)
+        let fromComponents = UIColor(from).rgba
+        let toComponents = UIColor(to).rgba
+
+        return Color(
+            red: fromComponents.r + (toComponents.r - fromComponents.r) * clamped,
+            green: fromComponents.g + (toComponents.g - fromComponents.g) * clamped,
+            blue: fromComponents.b + (toComponents.b - fromComponents.b) * clamped
+        )
+    }
+}
+
+private extension UIColor {
+    var rgba: (r: Double, g: Double, b: Double, a: Double) {
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+        getRed(&r, green: &g, blue: &b, alpha: &a)
+        return (Double(r), Double(g), Double(b), Double(a))
     }
 }
