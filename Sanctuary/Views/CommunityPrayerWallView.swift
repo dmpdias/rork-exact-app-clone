@@ -18,8 +18,11 @@ struct CommunityPrayerWallView: View {
                 headerBar
 
                 titleSection
-                    .padding(.top, 8)
-                    .padding(.bottom, 12)
+                    .padding(.top, 4)
+                    .padding(.bottom, 8)
+
+                categoryFilterRow
+                    .padding(.bottom, 16)
 
                 Spacer(minLength: 0)
 
@@ -33,8 +36,9 @@ struct CommunityPrayerWallView: View {
                 navigationHint
                     .padding(.bottom, 24)
             }
-
-            floatingSubmitButton
+        }
+        .onChange(of: viewModel.selectedCategory) { _, _ in
+            scrolledID = viewModel.filteredPrayers.first?.id
         }
     }
 
@@ -55,17 +59,19 @@ struct CommunityPrayerWallView: View {
 
             Spacer()
 
-            Image("BandIcon")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 28, height: 37)
+            Button {
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Theme.textDark)
+            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }
 
     private var titleSection: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 6) {
             Text("Prayer Wall")
                 .font(.system(size: 32, weight: .regular, design: .serif))
                 .foregroundStyle(Theme.textDark)
@@ -78,18 +84,6 @@ struct CommunityPrayerWallView: View {
                 .foregroundStyle(Theme.textLight)
                 .opacity(hasAppeared ? 1 : 0)
                 .offset(y: hasAppeared ? 0 : 8)
-
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(Theme.goldAccent)
-                    .frame(width: 6, height: 6)
-
-                Text("\(viewModel.prayers.filter { $0.isPrayingByMe }.count) prayers you're lifting")
-                    .font(.system(size: 12, weight: .medium, design: .serif))
-                    .foregroundStyle(Theme.textMedium)
-            }
-            .padding(.top, 4)
-            .opacity(hasAppeared ? 1 : 0)
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.6)) {
@@ -98,10 +92,29 @@ struct CommunityPrayerWallView: View {
         }
     }
 
+    private var categoryFilterRow: some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 20) {
+                ForEach(PrayerCategory.allCases, id: \.self) { category in
+                    CategoryFilterItem(
+                        category: category,
+                        isSelected: viewModel.selectedCategory == category
+                    ) {
+                        withAnimation(.spring(duration: 0.3)) {
+                            viewModel.selectedCategory = category
+                        }
+                    }
+                }
+            }
+        }
+        .contentMargins(.horizontal, 24)
+        .scrollIndicators(.hidden)
+    }
+
     private var cardCarousel: some View {
         ScrollView(.vertical) {
             LazyVStack(spacing: 20) {
-                ForEach(viewModel.prayers) { prayer in
+                ForEach(viewModel.filteredPrayers) { prayer in
                     PrayerCardView(
                         prayer: prayer,
                         timeAgo: viewModel.timeAgo(from: prayer.timestamp),
@@ -113,7 +126,7 @@ struct CommunityPrayerWallView: View {
                         }
                     }
                     .containerRelativeFrame(.vertical) { height, _ in
-                        height * 0.65
+                        height * 0.62
                     }
                     .scrollTransition(.interactive) { content, phase in
                         content
@@ -131,18 +144,18 @@ struct CommunityPrayerWallView: View {
         .contentMargins(.horizontal, 28)
         .sensoryFeedback(.selection, trigger: scrolledID)
         .onAppear {
-            scrolledID = viewModel.prayers.first?.id
+            scrolledID = viewModel.filteredPrayers.first?.id
         }
     }
 
     private var currentIndex: Int {
         guard let scrolledID else { return 0 }
-        return viewModel.prayers.firstIndex(where: { $0.id == scrolledID }) ?? 0
+        return viewModel.filteredPrayers.firstIndex(where: { $0.id == scrolledID }) ?? 0
     }
 
     private var cardIndicator: some View {
         HStack(spacing: 6) {
-            ForEach(0..<viewModel.prayers.count, id: \.self) { index in
+            ForEach(0..<viewModel.filteredPrayers.count, id: \.self) { index in
                 Capsule()
                     .fill(index == currentIndex ? Theme.goldAccent : Theme.sandDark.opacity(0.3))
                     .frame(width: index == currentIndex ? 20 : 6, height: 6)
@@ -161,31 +174,31 @@ struct CommunityPrayerWallView: View {
         .foregroundStyle(Theme.textLight.opacity(0.7))
         .opacity(hasAppeared ? 1 : 0)
     }
+}
 
-    private var floatingSubmitButton: some View {
-        VStack {
-            Spacer()
-            HStack {
-                Spacer()
-                Button {
-                } label: {
-                    Image(systemName: "plus")
+struct CategoryFilterItem: View {
+    let category: PrayerCategory
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(isSelected ? Theme.textDark : Theme.warmBeige.opacity(0.6))
+                        .frame(width: 48, height: 48)
+
+                    Image(systemName: category.icon)
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundStyle(Theme.goldAccent)
-                        .frame(width: 52, height: 52)
-                        .background(
-                            Circle()
-                                .fill(.white.opacity(0.85))
-                                .shadow(color: Theme.sandDark.opacity(0.12), radius: 12, y: 4)
-                        )
-                        .overlay(
-                            Circle()
-                                .stroke(Theme.goldAccent.opacity(0.5), lineWidth: 1.2)
-                        )
+                        .foregroundStyle(isSelected ? Theme.cream : Theme.textMedium)
                 }
-                .padding(.trailing, 24)
-                .padding(.bottom, 90)
+
+                Text(category.rawValue)
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular, design: .serif))
+                    .foregroundStyle(isSelected ? Theme.textDark : Theme.textLight)
             }
         }
+        .sensoryFeedback(.selection, trigger: isSelected)
     }
 }

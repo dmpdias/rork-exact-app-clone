@@ -4,6 +4,14 @@ import SwiftUI
 class CommunityViewModel {
     var prayers: [PrayerCard] = PrayerCard.samples
     var prayingAnimationId: UUID?
+    var selectedCategory: PrayerCategory = .all
+
+    var filteredPrayers: [PrayerCard] {
+        if selectedCategory == .all {
+            return prayers
+        }
+        return prayers.filter { $0.category == selectedCategory }
+    }
 
     func togglePraying(for id: UUID) {
         guard let index = prayers.firstIndex(where: { $0.id == id }) else { return }

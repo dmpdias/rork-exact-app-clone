@@ -13,48 +13,43 @@ struct PrayerCardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 20) {
-                Image(systemName: "quote.opening")
-                    .font(.system(size: 28, weight: .ultraLight))
-                    .foregroundStyle(Theme.goldAccent.opacity(isActive ? 1.0 : 0.5))
-                    .opacity(isActive ? (breathePhase ? 1.0 : 0.6) : 0.5)
-                    .animation(.easeInOut(duration: 4).repeatForever(autoreverses: true), value: breathePhase)
-                    .padding(.top, 4)
+            VStack(alignment: .leading, spacing: 16) {
+                categoryTag
 
                 Text(prayer.text)
-                    .font(.system(size: 18, weight: .regular, design: .serif))
-                    .italic()
-                    .foregroundStyle(Theme.textDark.opacity(0.9))
-                    .lineSpacing(7)
-                    .multilineTextAlignment(.center)
+                    .font(.system(size: 20, weight: .regular, design: .serif))
+                    .foregroundStyle(Theme.textDark)
+                    .lineSpacing(6)
+                    .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 8)
+            }
+            .padding(.top, 28)
+            .padding(.horizontal, 24)
 
+            Spacer(minLength: 20)
+
+            VStack(spacing: 14) {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [Theme.goldAccent.opacity(0), Theme.goldAccent.opacity(0.4), Theme.goldAccent.opacity(0)],
+                            colors: [Theme.goldAccent.opacity(0), Theme.goldAccent.opacity(0.25), Theme.goldAccent.opacity(0)],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
-                    .frame(width: 60, height: 1)
-            }
-            .padding(.top, 28)
+                    .frame(height: 0.5)
+                    .padding(.horizontal, 24)
 
-            Spacer(minLength: 16)
-
-            VStack(spacing: 16) {
-                HStack(spacing: 10) {
+                HStack(spacing: 12) {
                     Text(prayer.initials)
-                        .font(.system(size: 14, weight: .semibold, design: .serif))
+                        .font(.system(size: 13, weight: .semibold, design: .serif))
                         .foregroundStyle(Theme.cardBrown)
-                        .frame(width: 40, height: 40)
+                        .frame(width: 38, height: 38)
                         .background(Theme.warmBeige.opacity(0.5))
                         .clipShape(Circle())
                         .overlay(
                             Circle()
-                                .stroke(Theme.goldAccent.opacity(0.3), lineWidth: 1)
+                                .stroke(Theme.goldAccent.opacity(0.25), lineWidth: 1)
                         )
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -68,26 +63,41 @@ struct PrayerCardView: View {
                     }
 
                     Spacer()
-
-                    Text("\(prayer.prayingCount) praying")
-                        .font(.system(size: 11, weight: .medium, design: .serif))
-                        .foregroundStyle(Theme.textLight)
                 }
+                .padding(.horizontal, 24)
 
-                prayButton
+                HStack(spacing: 12) {
+                    prayButton
+
+                    prayingCountBadge
+                }
+                .padding(.horizontal, 24)
             }
             .padding(.bottom, 24)
         }
-        .padding(.horizontal, 24)
         .frame(maxHeight: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(.white.opacity(0.8))
-                .shadow(color: Theme.sandDark.opacity(0.08), radius: 24, y: 10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .stroke(Theme.goldAccent.opacity(0.12), lineWidth: 1)
-                )
+            ZStack {
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(.white.opacity(0.85))
+
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            stops: [
+                                .init(color: categoryGradientTop.opacity(0.12), location: 0),
+                                .init(color: .white.opacity(0.01), location: 0.6),
+                                .init(color: categoryGradientBottom.opacity(0.06), location: 1),
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .stroke(Theme.goldAccent.opacity(0.1), lineWidth: 1)
+            }
+            .shadow(color: Theme.sandDark.opacity(0.08), radius: 24, y: 10)
         )
         .opacity(appeared ? 1 : 0)
         .scaleEffect(appeared ? 1 : 0.95)
@@ -96,6 +106,58 @@ struct PrayerCardView: View {
                 appeared = true
             }
             breathePhase = true
+        }
+    }
+
+    private var categoryTag: some View {
+        Text(prayer.category.rawValue)
+            .font(.system(size: 12, weight: .semibold, design: .serif))
+            .foregroundStyle(categoryTagColor)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(categoryTagColor.opacity(0.1))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(categoryTagColor.opacity(0.2), lineWidth: 0.5)
+            )
+    }
+
+    private var categoryTagColor: Color {
+        switch prayer.category {
+        case .all: return Theme.goldAccent
+        case .healing: return Color(red: 0.75, green: 0.42, blue: 0.42)
+        case .guidance: return Color(red: 0.42, green: 0.55, blue: 0.72)
+        case .gratitude: return Color(red: 0.72, green: 0.62, blue: 0.32)
+        case .family: return Color(red: 0.55, green: 0.65, blue: 0.45)
+        case .faith: return Color(red: 0.62, green: 0.48, blue: 0.68)
+        case .strength: return Color(red: 0.70, green: 0.50, blue: 0.38)
+        }
+    }
+
+    private var categoryGradientTop: Color {
+        switch prayer.category {
+        case .all: return Theme.goldLight
+        case .healing: return Color(red: 0.90, green: 0.75, blue: 0.75)
+        case .guidance: return Color(red: 0.75, green: 0.82, blue: 0.92)
+        case .gratitude: return Color(red: 0.92, green: 0.88, blue: 0.70)
+        case .family: return Color(red: 0.78, green: 0.88, blue: 0.72)
+        case .faith: return Color(red: 0.85, green: 0.78, blue: 0.90)
+        case .strength: return Color(red: 0.92, green: 0.82, blue: 0.72)
+        }
+    }
+
+    private var categoryGradientBottom: Color {
+        switch prayer.category {
+        case .all: return Theme.warmBeige
+        case .healing: return Color(red: 0.92, green: 0.80, blue: 0.78)
+        case .guidance: return Color(red: 0.80, green: 0.85, blue: 0.92)
+        case .gratitude: return Color(red: 0.90, green: 0.85, blue: 0.72)
+        case .family: return Color(red: 0.80, green: 0.88, blue: 0.78)
+        case .faith: return Color(red: 0.88, green: 0.82, blue: 0.90)
+        case .strength: return Color(red: 0.90, green: 0.82, blue: 0.75)
         }
     }
 
@@ -108,15 +170,15 @@ struct PrayerCardView: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: prayer.isPrayingByMe ? "hands.clap.fill" : "hands.clap")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .symbolEffect(.bounce, value: isPulsing)
 
-                Text(prayer.isPrayingByMe ? "Praying with them" : "I'm Praying")
-                    .font(.system(size: 14, weight: .semibold, design: .serif))
+                Text(prayer.isPrayingByMe ? "Praying" : "I'm Praying")
+                    .font(.system(size: 13, weight: .semibold, design: .serif))
             }
             .foregroundStyle(prayer.isPrayingByMe ? .white : Theme.goldDark)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
             .background(
                 ZStack {
                     if prayer.isPrayingByMe {
@@ -153,12 +215,22 @@ struct PrayerCardView: View {
             .overlay(
                 Capsule()
                     .stroke(
-                        prayer.isPrayingByMe ? Theme.divineGold : Theme.goldAccent.opacity(0.5),
-                        lineWidth: prayer.isPrayingByMe ? 2 : 1.5
+                        prayer.isPrayingByMe ? Theme.divineGold : Theme.goldAccent.opacity(0.45),
+                        lineWidth: prayer.isPrayingByMe ? 1.5 : 1
                     )
             )
         }
         .sensoryFeedback(.impact(flexibility: .soft), trigger: prayer.isPrayingByMe)
+    }
+
+    private var prayingCountBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "person.2.fill")
+                .font(.system(size: 10))
+            Text("\(prayer.prayingCount)")
+                .font(.system(size: 12, weight: .medium, design: .serif))
+        }
+        .foregroundStyle(Theme.textLight)
     }
 
     private func triggerBloom() {
