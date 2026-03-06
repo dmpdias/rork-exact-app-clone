@@ -7,39 +7,55 @@ struct CourseDetailView: View {
 
     @State private var hasAppeared: Bool = false
     @State private var isBeginPressed: Bool = false
+    @State private var showPlayer: Bool = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            courseHeader
-
-            ScrollView(.vertical) {
-                VStack(spacing: 0) {
-                    synopsisSection
-                        .padding(.top, 20)
-                        .padding(.horizontal, 24)
-
-                    statsGrid
-                        .padding(.top, 28)
-                        .padding(.horizontal, 24)
-
-                    communityPulse
-                        .padding(.top, 28)
-                        .padding(.horizontal, 24)
-
-                    whatYoullFind
-                        .padding(.top, 28)
-                        .padding(.horizontal, 24)
-
-                    beginButton
-                        .padding(.top, 36)
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 60)
+        ZStack {
+            if showPlayer {
+                LivingWordPlayerView(item: item) {
+                    withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
+                        showPlayer = false
+                    }
                 }
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .scale(scale: 1.02)),
+                    removal: .opacity.combined(with: .scale(scale: 0.98))
+                ))
+            } else {
+                VStack(spacing: 0) {
+                    courseHeader
+
+                    ScrollView(.vertical) {
+                        VStack(spacing: 0) {
+                            synopsisSection
+                                .padding(.top, 20)
+                                .padding(.horizontal, 24)
+
+                            statsGrid
+                                .padding(.top, 28)
+                                .padding(.horizontal, 24)
+
+                            communityPulse
+                                .padding(.top, 28)
+                                .padding(.horizontal, 24)
+
+                            whatYoullFind
+                                .padding(.top, 28)
+                                .padding(.horizontal, 24)
+
+                            beginButton
+                                .padding(.top, 36)
+                                .padding(.horizontal, 24)
+                                .padding(.bottom, 60)
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+                }
+                .opacity(hasAppeared ? 1 : 0)
+                .offset(y: hasAppeared ? 0 : 8)
+                .transition(.opacity)
             }
-            .scrollIndicators(.hidden)
         }
-        .opacity(hasAppeared ? 1 : 0)
-        .offset(y: hasAppeared ? 0 : 8)
         .onAppear {
             withAnimation(.easeOut(duration: 0.5)) {
                 hasAppeared = true
@@ -262,6 +278,9 @@ struct CourseDetailView: View {
     private var beginButton: some View {
         Button {
             isBeginPressed = true
+            withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
+                showPlayer = true
+            }
         } label: {
             HStack(spacing: 10) {
                 Text("Begin This Journey")
