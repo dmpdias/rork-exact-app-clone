@@ -3,7 +3,6 @@ import SwiftUI
 struct CounselorChatView: View {
     @State private var viewModel = CounselorViewModel()
     @FocusState private var isInputFocused: Bool
-    @State private var dragOffset: CGFloat = 0
     @State private var hasAppeared: Bool = false
     @State private var scrollDownPulse: Bool = false
 
@@ -32,6 +31,9 @@ struct CounselorChatView: View {
                 startersOverlay
             }
         }
+        .sheet(isPresented: $viewModel.showPersonaPicker) {
+            CounselorPersonaPickerView(selectedPersona: $viewModel.selectedPersona)
+        }
         .onAppear {
             withAnimation(.easeOut(duration: 0.6)) {
                 hasAppeared = true
@@ -43,105 +45,186 @@ struct CounselorChatView: View {
     }
 
     private var headerBar: some View {
-        HStack {
+        HStack(spacing: 14) {
             Button {
+                if !viewModel.messages.isEmpty {
+                    viewModel.clearConversation()
+                }
             } label: {
-                Image(systemName: "line.3.horizontal")
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundStyle(Theme.textDark)
+                Image(systemName: viewModel.messages.isEmpty ? "ellipsis" : "arrow.counterclockwise")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(Theme.textMedium)
+                    .frame(width: 36, height: 36)
+                    .background(Theme.sandLight)
+                    .clipShape(Circle())
             }
 
             Spacer()
 
-            Text("Counselor")
-                .font(.system(.subheadline, design: .serif))
-                .foregroundStyle(Theme.textMedium)
+            VStack(spacing: 2) {
+                Text("Counselor")
+                    .font(.system(.subheadline, design: .serif, weight: .medium))
+                    .foregroundStyle(Theme.textDark)
+
+                Text(viewModel.selectedPersona.title)
+                    .font(.system(.caption2, design: .serif))
+                    .foregroundStyle(Theme.textLight)
+            }
 
             Spacer()
 
-            Image("BandIcon")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 28, height: 37)
+            Button {
+                viewModel.showPersonaPicker = true
+            } label: {
+                counselorAvatar
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
+    }
+
+    private var counselorAvatar: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [Theme.goldLight, Theme.goldAccent, Theme.goldDark],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 42, height: 42)
+
+            Circle()
+                .fill(Theme.cream)
+                .frame(width: 38, height: 38)
+
+            Image(systemName: viewModel.selectedPersona.icon)
+                .font(.system(size: 17))
+                .foregroundStyle(Theme.goldDark)
+        }
     }
 
     private var emptyState: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: 8) {
-                Text("Type to Ask")
-                    .font(.system(size: 28, weight: .regular, design: .serif))
-                    .foregroundStyle(Theme.textDark)
+            VStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Theme.goldAccent.opacity(0.15), Theme.cream.opacity(0)],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 60
+                            )
+                        )
+                        .frame(width: 100, height: 100)
 
-                Text("Scroll to Generate")
-                    .font(.system(size: 28, weight: .regular, design: .serif))
-                    .foregroundStyle(Theme.textDark)
+                    Image(systemName: viewModel.selectedPersona.icon)
+                        .font(.system(size: 32))
+                        .foregroundStyle(Theme.goldDark.opacity(0.7))
+                }
+
+                VStack(spacing: 6) {
+                    Text(viewModel.selectedPersona.name)
+                        .font(.system(size: 26, weight: .regular, design: .serif))
+                        .foregroundStyle(Theme.textDark)
+
+                    Text("Ready to listen and guide you")
+                        .font(.system(.subheadline, design: .serif))
+                        .foregroundStyle(Theme.textLight)
+                        .italic()
+                }
             }
             .opacity(hasAppeared ? 1 : 0)
             .offset(y: hasAppeared ? 0 : 12)
 
             Spacer()
+                .frame(height: 32)
 
-            VStack(spacing: 16) {
-                softGlow
+            featuredStartersSection
+
+            Spacer()
+                .frame(height: 24)
+
+            VStack(spacing: 14) {
+                Text("Scroll down to explore more topics")
+                    .font(.system(.caption, design: .serif))
+                    .foregroundStyle(Theme.textLight)
+                    .italic()
 
                 Button {
                     withAnimation(.spring(duration: 0.4)) {
                         viewModel.showStarters = true
                     }
                 } label: {
-                    Image(systemName: "arrow.down")
-                        .font(.system(size: 16, weight: .medium))
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(Theme.textMedium)
-                        .frame(width: 40, height: 40)
+                        .frame(width: 36, height: 36)
                         .background(
                             Circle()
                                 .fill(Theme.sandLight)
-                                .shadow(color: Theme.sandDark.opacity(0.15), radius: 8, y: 2)
+                                .shadow(color: Theme.sandDark.opacity(0.12), radius: 8, y: 2)
                         )
                 }
-                .scaleEffect(scrollDownPulse ? 1.05 : 1.0)
-                .opacity(scrollDownPulse ? 1 : 0.7)
+                .scaleEffect(scrollDownPulse ? 1.06 : 1.0)
+                .opacity(scrollDownPulse ? 1 : 0.65)
             }
-            .padding(.bottom, 24)
+            .padding(.bottom, 20)
         }
         .gesture(
             DragGesture()
-                .onChanged { value in
-                    if value.translation.height > 0 {
-                        dragOffset = value.translation.height
-                    }
-                }
                 .onEnded { value in
-                    if value.translation.height > 60 {
+                    if value.translation.height < -60 {
                         withAnimation(.spring(duration: 0.4)) {
                             viewModel.showStarters = true
                         }
                     }
-                    dragOffset = 0
                 }
         )
     }
 
-    private var softGlow: some View {
-        Circle()
-            .fill(
-                RadialGradient(
-                    colors: [
-                        Theme.warmBeige.opacity(0.6),
-                        Theme.cream.opacity(0.0)
-                    ],
-                    center: .center,
-                    startRadius: 0,
-                    endRadius: 100
-                )
-            )
-            .frame(width: 200, height: 200)
-            .blur(radius: 30)
+    private var featuredStartersSection: some View {
+        VStack(spacing: 10) {
+            ForEach(CounselorViewModel.featuredStarters) { starter in
+                Button {
+                    viewModel.sendStarter(starter)
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: starter.icon)
+                            .font(.system(size: 14))
+                            .foregroundStyle(Theme.goldDark)
+                            .frame(width: 32, height: 32)
+                            .background(Theme.goldAccent.opacity(0.1))
+                            .clipShape(Circle())
+
+                        Text(starter.prompt)
+                            .font(.system(.subheadline, design: .serif))
+                            .foregroundStyle(Theme.textDark)
+                            .multilineTextAlignment(.leading)
+
+                        Spacer()
+
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Theme.textLight)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 13)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(.white.opacity(0.65))
+                            .shadow(color: Theme.sandDark.opacity(0.05), radius: 8, y: 2)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 24)
     }
 
     private var chatMessages: some View {
@@ -149,7 +232,7 @@ struct CounselorChatView: View {
             ScrollView {
                 LazyVStack(spacing: 16) {
                     ForEach(viewModel.messages) { message in
-                        ChatBubbleView(message: message)
+                        ChatBubbleView(message: message, personaIcon: viewModel.selectedPersona.icon)
                             .id(message.id)
                             .transition(.asymmetric(
                                 insertion: .opacity.combined(with: .move(edge: .bottom)),
@@ -181,6 +264,14 @@ struct CounselorChatView: View {
 
     private var typingIndicator: some View {
         HStack(alignment: .bottom) {
+            Image(systemName: viewModel.selectedPersona.icon)
+                .font(.system(size: 10))
+                .foregroundStyle(Theme.goldAccent)
+                .frame(width: 22, height: 22)
+                .background(Theme.goldAccent.opacity(0.12))
+                .clipShape(Circle())
+                .padding(.bottom, 4)
+
             TypingDotsView()
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -192,7 +283,7 @@ struct CounselorChatView: View {
 
     private var inputBar: some View {
         HStack(spacing: 12) {
-            TextField("Ask Anything", text: $viewModel.inputText)
+            TextField("Ask anything…", text: $viewModel.inputText)
                 .font(.system(.body, design: .serif))
                 .foregroundStyle(Theme.textDark)
                 .focused($isInputFocused)

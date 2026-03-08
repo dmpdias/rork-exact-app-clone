@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ChatBubbleView: View {
     let message: ChatMessage
+    var personaIcon: String = "sparkles"
     @State private var appeared: Bool = false
 
     private var isUser: Bool { message.role == .user }
@@ -11,7 +12,7 @@ struct ChatBubbleView: View {
             if isUser { Spacer(minLength: 60) }
 
             if !isUser {
-                Image(systemName: "sparkles")
+                Image(systemName: personaIcon)
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.goldAccent)
                     .frame(width: 24, height: 24)
