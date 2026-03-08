@@ -30,7 +30,7 @@ struct ContentView: View {
             }
 
             Tab(value: 4) {
-                PlaceholderTabView(title: "Profile", icon: "person")
+                ProfileView()
             } label: {
                 Label("Profile", systemImage: "person")
             }

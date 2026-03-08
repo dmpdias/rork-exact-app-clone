@@ -30,7 +30,7 @@
 - **Counselor** — Placeholder tab
 - **Community** — Placeholder tab
 - **Journey** — Placeholder tab
-- **Profile** — Placeholder tab
+- **Profile** — Full profile page with breathing golden halo avatar, 2x2 stats grid (prayers, scriptures, streak, blessings), compact devotion ring, horizontally scrollable milestone cards with progress rings, settings list with colored icons, and sign-out confirmation
 
 ## App Icon
 
