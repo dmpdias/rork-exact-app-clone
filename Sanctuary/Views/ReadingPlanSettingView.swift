@@ -63,7 +63,7 @@ struct ReadingPlanSettingView: View {
                         .foregroundStyle(Theme.textLight)
 
                     Text(viewModel.readingPlanName)
-                        .font(.system(.title3, weight: .bold, design: .serif))
+                        .font(.system(.title3, design: .serif, weight: .bold))
                         .foregroundStyle(Theme.textDark)
                 }
                 Spacer()
@@ -79,7 +79,7 @@ struct ReadingPlanSettingView: View {
                         .foregroundStyle(Theme.textLight)
                     Spacer()
                     Text("\(Int(viewModel.readingPlanProgress * 100))%")
-                        .font(.system(.caption, weight: .bold, design: .serif))
+                        .font(.system(.caption, design: .serif, weight: .bold))
                         .foregroundStyle(Theme.goldDark)
                 }
 
@@ -135,7 +135,7 @@ struct ReadingPlanSettingView: View {
                     .labelsHidden()
 
                 Text("\(viewModel.chaptersPerDay)")
-                    .font(.system(.body, weight: .bold, design: .serif))
+                    .font(.system(.body, design: .serif, weight: .bold))
                     .foregroundStyle(Theme.goldDark)
                     .frame(width: 24)
             }

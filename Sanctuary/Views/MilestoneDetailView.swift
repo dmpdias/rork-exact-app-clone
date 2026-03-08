@@ -126,7 +126,7 @@ struct MilestoneDetailView: View {
                     .foregroundStyle(Theme.textLight)
                 Spacer()
                 Text("\(Int(milestone.progress * 100))%")
-                    .font(.system(.subheadline, weight: .bold, design: .serif))
+                    .font(.system(.subheadline, design: .serif, weight: .bold))
                     .foregroundStyle(milestone.isUnlocked ? Theme.divineGold : Theme.goldDark)
             }
 
@@ -211,7 +211,7 @@ struct MilestoneDetailView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Milestone Achieved")
-                    .font(.system(.subheadline, weight: .semibold, design: .serif))
+                    .font(.system(.subheadline, design: .serif, weight: .semibold))
                     .foregroundStyle(Theme.textDark)
 
                 Text("This milestone shines in your sacred journey.")
@@ -239,7 +239,7 @@ struct MilestoneDetailView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Keep Going")
-                    .font(.system(.subheadline, weight: .semibold, design: .serif))
+                    .font(.system(.subheadline, design: .serif, weight: .semibold))
                     .foregroundStyle(Theme.textDark)
 
                 Text("You're \(Int((1.0 - milestone.progress) * 100))% away from unlocking this milestone.")
