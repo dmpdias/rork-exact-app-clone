@@ -336,7 +336,8 @@ struct SanctuaryRoomInteriorView: View {
             bloomOpacity = 0.0
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        Task {
+            try? await Task.sleep(for: .seconds(1.5))
             bloomScale = 0
             prayerLifted = false
             litAvatarIndex = nil
@@ -344,21 +345,28 @@ struct SanctuaryRoomInteriorView: View {
     }
 
     private func startScriptureRotation() {
-        Timer.scheduledTimer(withTimeInterval: 6.0, repeats: true) { _ in
-            withAnimation {
-                currentLineIndex = (currentLineIndex + 1) % scriptureLines.count
+        Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(6.0))
+                withAnimation {
+                    currentLineIndex = (currentLineIndex + 1) % scriptureLines.count
+                }
             }
         }
     }
 
     private func startWaveformAnimation() {
-        Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { _ in
-            waveformPhase += 0.15
+        Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(80))
+                waveformPhase += 0.15
+            }
         }
     }
 
     private func autoHideControls() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+        Task {
+            try? await Task.sleep(for: .seconds(4.0))
             withAnimation(.easeInOut(duration: 0.6)) {
                 showControls = false
             }

@@ -13,8 +13,9 @@ struct TypingDotsView: View {
                     .opacity(phase == index ? 1 : 0.4)
             }
         }
-        .onAppear {
-            Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(400))
                 withAnimation(.easeInOut(duration: 0.3)) {
                     phase = (phase + 1) % 3
                 }

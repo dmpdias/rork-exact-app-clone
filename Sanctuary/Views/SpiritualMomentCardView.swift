@@ -59,7 +59,8 @@ struct BeginMomentButton: View {
             withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
                 pressed = true
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            Task {
+                try? await Task.sleep(for: .milliseconds(250))
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                     pressed = false
                 }
@@ -119,7 +120,8 @@ struct BeginMomentButton: View {
         withAnimation(.easeInOut(duration: 2.0)) {
             shimmerPhase = 400
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.6) {
+        Task {
+            try? await Task.sleep(for: .milliseconds(2600))
             startShimmerLoop()
         }
     }
