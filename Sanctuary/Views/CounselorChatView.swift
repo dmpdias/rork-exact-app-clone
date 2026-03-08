@@ -5,6 +5,7 @@ struct CounselorChatView: View {
     @FocusState private var isInputFocused: Bool
     @State private var hasAppeared: Bool = false
     @State private var scrollDownPulse: Bool = false
+    @State private var avatarRingRotation: Double = 0
 
     var body: some View {
         ZStack {
@@ -40,6 +41,9 @@ struct CounselorChatView: View {
             }
             withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
                 scrollDownPulse = true
+            }
+            withAnimation(.linear(duration: 3.0).repeatForever(autoreverses: false)) {
+                avatarRingRotation = 360
             }
         }
     }
@@ -87,22 +91,32 @@ struct CounselorChatView: View {
     private var counselorAvatar: some View {
         ZStack {
             Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [Theme.goldLight, Theme.goldAccent, Theme.goldDark],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
+                .stroke(
+                    AngularGradient(
+                        colors: [Theme.goldLight.opacity(0.3), Theme.goldAccent, Theme.goldDark, Theme.goldLight.opacity(0.3)],
+                        center: .center
+                    ),
+                    lineWidth: 2.5
                 )
-                .frame(width: 42, height: 42)
+                .frame(width: 46, height: 46)
+                .rotationEffect(.degrees(avatarRingRotation))
 
             Circle()
                 .fill(Theme.cream)
-                .frame(width: 38, height: 38)
+                .frame(width: 40, height: 40)
 
             Image(systemName: viewModel.selectedPersona.icon)
                 .font(.system(size: 17))
                 .foregroundStyle(Theme.goldDark)
+                .contentTransition(.symbolEffect(.replace))
+
+            Image(systemName: "arrow.triangle.2.circlepath")
+                .font(.system(size: 7, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 16, height: 16)
+                .background(Theme.goldDark)
+                .clipShape(Circle())
+                .offset(x: 15, y: 15)
         }
     }
 
