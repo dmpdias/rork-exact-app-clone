@@ -161,16 +161,15 @@ struct FellowshipView: View {
     }
 
     private var podiumSection: some View {
-        let top = viewModel.topThree
         HStack(alignment: .bottom, spacing: 0) {
-            if top.count >= 2 {
-                podiumColumn(member: top[1], place: 2, height: 90)
+            if viewModel.topThree.count >= 2 {
+                podiumColumn(member: viewModel.topThree[1], place: 2, height: 90)
             }
-            if top.count >= 1 {
-                podiumColumn(member: top[0], place: 1, height: 120)
+            if viewModel.topThree.count >= 1 {
+                podiumColumn(member: viewModel.topThree[0], place: 1, height: 120)
             }
-            if top.count >= 3 {
-                podiumColumn(member: top[2], place: 3, height: 70)
+            if viewModel.topThree.count >= 3 {
+                podiumColumn(member: viewModel.topThree[2], place: 3, height: 70)
             }
         }
         .padding(.horizontal, 16)
