@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct DevotionScoreView: View {
+    var onSeeBreakdown: () -> Void
+
     let score: Int = 73
     @State private var animatedProgress: Double = 0
     @State private var scoreOpacity: Double = 0
@@ -61,7 +63,7 @@ struct DevotionScoreView: View {
                     .multilineTextAlignment(.center)
                     .lineSpacing(3)
 
-                Button(action: {}) {
+                Button(action: onSeeBreakdown) {
                     Text("See what builds your score")
                         .font(.system(.subheadline, design: .serif))
                         .fontWeight(.medium)
@@ -74,6 +76,7 @@ struct DevotionScoreView: View {
                         )
                 }
                 .buttonStyle(.plain)
+                .sensoryFeedback(.selection, trigger: false)
             }
         }
         .padding(.horizontal, 20)

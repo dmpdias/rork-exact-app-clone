@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ActivityLogView: View {
+    var onActivityTap: (ActivityItem) -> Void
+
     @State private var appeared: Bool = false
 
     let activities: [ActivityItem] = [
@@ -49,10 +51,15 @@ struct ActivityLogView: View {
 
             VStack(spacing: 0) {
                 ForEach(Array(activities.enumerated()), id: \.element.id) { index, activity in
-                    ActivityRowView(activity: activity)
-                        .opacity(appeared ? 1 : 0)
-                        .offset(y: appeared ? 0 : 12)
-                        .animation(.easeOut(duration: 0.35).delay(Double(index) * 0.08), value: appeared)
+                    Button {
+                        onActivityTap(activity)
+                    } label: {
+                        ActivityRowView(activity: activity)
+                    }
+                    .buttonStyle(.plain)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 12)
+                    .animation(.easeOut(duration: 0.35).delay(Double(index) * 0.08), value: appeared)
 
                     if activity.id != activities.last?.id {
                         Divider()
@@ -111,15 +118,21 @@ struct ActivityRowView: View {
 
             Spacer()
 
-            Text("+\(activity.points) pts")
-                .font(.system(.subheadline, design: .serif))
-                .foregroundStyle(Theme.textMedium)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule()
-                        .fill(Theme.sandLight.opacity(0.6))
-                )
+            HStack(spacing: 8) {
+                Text("+\(activity.points) pts")
+                    .font(.system(.subheadline, design: .serif))
+                    .foregroundStyle(Theme.textMedium)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Theme.sandLight.opacity(0.6))
+                    )
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Theme.textLight.opacity(0.5))
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

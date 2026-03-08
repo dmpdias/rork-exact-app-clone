@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct SpiritualMomentCardView: View {
+    var onBeginMoment: () -> Void
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SectionHeaderView(label: "SPIRITUAL TODAY", title: "Today's guided moment.")
@@ -29,7 +31,7 @@ struct SpiritualMomentCardView: View {
                         .foregroundStyle(.white.opacity(0.85))
                         .lineSpacing(4)
 
-                    BeginMomentButton()
+                    BeginMomentButton(action: onBeginMoment)
 
                     Divider()
                         .background(.white.opacity(0.15))
@@ -51,11 +53,12 @@ struct SpiritualMomentCardView: View {
 }
 
 struct BeginMomentButton: View {
+    let action: () -> Void
     @State private var shimmerPhase: CGFloat = -200
     @State private var pressed: Bool = false
 
     var body: some View {
-        Button(action: {
+        Button {
             withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
                 pressed = true
             }
@@ -65,7 +68,8 @@ struct BeginMomentButton: View {
                     pressed = false
                 }
             }
-        }) {
+            action()
+        } label: {
             HStack(spacing: 16) {
                 ZStack {
                     Circle()
@@ -110,6 +114,7 @@ struct BeginMomentButton: View {
         }
         .buttonStyle(.plain)
         .scaleEffect(pressed ? 1.03 : 1.0)
+        .sensoryFeedback(.impact(weight: .medium), trigger: pressed)
         .onAppear {
             startShimmerLoop()
         }

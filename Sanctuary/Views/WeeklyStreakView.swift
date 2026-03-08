@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct WeeklyStreakView: View {
+    var onDayTap: (WeekDay, Int) -> Void
+
     let days: [WeekDay] = [
         WeekDay(label: "M", percentage: 1.0, isCurrent: false, isFuture: false),
         WeekDay(label: "T", percentage: 1.0, isCurrent: false, isFuture: false),
@@ -22,13 +24,19 @@ struct WeeklyStreakView: View {
                     let showChainLeft = index > 0 && days[index - 1].isCompleted && day.isCompleted
                     let showChainRight = index < days.count - 1 && days[index + 1].isCompleted && day.isCompleted
 
-                    DayChainCircleView(
-                        day: day,
-                        showChainLeft: showChainLeft,
-                        showChainRight: showChainRight,
-                        animateIn: animateIn
-                    )
-                    .frame(maxWidth: .infinity)
+                    Button {
+                        onDayTap(day, index)
+                    } label: {
+                        DayChainCircleView(
+                            day: day,
+                            showChainLeft: showChainLeft,
+                            showChainRight: showChainRight,
+                            animateIn: animateIn
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.plain)
+                    .sensoryFeedback(.selection, trigger: index)
                 }
             }
         }
