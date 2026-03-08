@@ -44,7 +44,7 @@ struct GreetingHeaderView: View {
             Spacer()
 
             Button(action: onBibleProgressTap) {
-                BibleProgressView(progress: 0.78)
+                AvatarView()
             }
             .buttonStyle(.plain)
         }
@@ -53,24 +53,26 @@ struct GreetingHeaderView: View {
     }
 }
 
-struct BibleProgressView: View {
-    let progress: Double
-
+struct AvatarView: View {
     var body: some View {
-        VStack(spacing: 6) {
-            Image("BandIcon")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 50, height: 66)
+        ZStack {
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [Theme.goldLight, Theme.goldAccent, Theme.goldDark],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 48, height: 48)
 
-            HStack(spacing: 3) {
-                Circle()
-                    .fill(.green)
-                    .frame(width: 6, height: 6)
-                Text("\(Int(progress * 100))%")
-                    .font(.system(.caption2, design: .serif))
-                    .foregroundStyle(Theme.textMedium)
-            }
+            Circle()
+                .fill(Theme.cream)
+                .frame(width: 44, height: 44)
+
+            Text("D")
+                .font(.system(size: 22, weight: .semibold, design: .serif))
+                .foregroundStyle(Theme.goldDark)
         }
     }
 }
