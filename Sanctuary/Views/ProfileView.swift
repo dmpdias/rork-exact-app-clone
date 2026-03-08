@@ -4,6 +4,8 @@ struct ProfileView: View {
     @State private var viewModel = ProfileViewModel()
     @State private var haloBreathing: Bool = false
     @State private var showSignOutConfirm: Bool = false
+    @State private var selectedMilestone: ProfileMilestone?
+    @State private var activePreference: PreferenceType?
 
     var body: some View {
         ZStack {
@@ -48,6 +50,36 @@ struct ProfileView: View {
         } message: {
             Text("Are you sure you want to sign out?")
         }
+        .sheet(item: $selectedMilestone) { milestone in
+            MilestoneDetailView(milestone: milestone)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: showPreferenceBinding(.dailyReminders)) {
+            DailyRemindersSettingView(viewModel: viewModel)
+        }
+        .sheet(isPresented: showPreferenceBinding(.prayerNotifications)) {
+            PrayerNotificationsSettingView(viewModel: viewModel)
+        }
+        .sheet(isPresented: showPreferenceBinding(.readingPlan)) {
+            ReadingPlanSettingView(viewModel: viewModel)
+        }
+        .sheet(isPresented: showPreferenceBinding(.appearance)) {
+            AppearanceSettingView(viewModel: viewModel)
+        }
+        .sheet(isPresented: showPreferenceBinding(.privacy)) {
+            PrivacySettingView(viewModel: viewModel)
+        }
+        .sheet(isPresented: showPreferenceBinding(.about)) {
+            AboutSettingView()
+        }
+    }
+
+    private func showPreferenceBinding(_ type: PreferenceType) -> Binding<Bool> {
+        Binding(
+            get: { activePreference == type },
+            set: { if !$0 { activePreference = nil } }
+        )
     }
 
     private var profileHeader: some View {
@@ -214,7 +246,12 @@ struct ProfileView: View {
             ScrollView(.horizontal) {
                 HStack(spacing: 14) {
                     ForEach(viewModel.milestones) { milestone in
-                        milestoneCard(milestone)
+                        Button {
+                            selectedMilestone = milestone
+                        } label: {
+                            milestoneCard(milestone)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -275,7 +312,9 @@ struct ProfileView: View {
 
             VStack(spacing: 2) {
                 ForEach(viewModel.preferences) { pref in
-                    Button(action: {}) {
+                    Button {
+                        activePreference = pref.type
+                    } label: {
                         HStack(spacing: 14) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 8)
