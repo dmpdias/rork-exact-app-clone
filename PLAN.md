@@ -26,6 +26,8 @@
 
 ## Screens
 
+- **Onboarding (8 steps)** — Welcome screen with branding, name & age input, prayer frequency question with personalized insight, scripture reading habits with insight, spiritual goals multi-select (up to 3), biggest challenge with insight, personalized plan based on all answers, and ink signature commitment using PencilKit
+- **Login** — Clean sign-in page with email/password fields, branding, forgot password, and create account link back to onboarding
 - **Sanctuary (Home)** — The main scrollable screen containing all sections: greeting, spiritual moment card, weekly streak, devotion score with circular arc, scripture card, and activity log
 - **Counselor** — Placeholder tab
 - **Community** — Placeholder tab
