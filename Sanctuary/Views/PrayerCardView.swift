@@ -8,6 +8,8 @@ struct PrayerCardView: View {
     let onPray: () -> Void
     let onEnterPrayer: () -> Void
 
+    @State private var showShareSheet: Bool = false
+
     @State private var appeared: Bool = false
     @State private var bloomActive: Bool = false
     @State private var breathePhase: Bool = false
@@ -77,7 +79,7 @@ struct PrayerCardView: View {
 
                     Spacer()
 
-                    enterPrayerButton
+                    shareButton
                 }
                 .padding(.horizontal, 24)
             }
@@ -143,17 +145,23 @@ struct PrayerCardView: View {
 
     private var prayButton: some View {
         Button {
-            onPray()
-            if !prayer.isPrayingByMe {
+            if prayer.isPrayingByMe {
+                onPray()
+            } else {
+                onPray()
                 triggerBloom()
+                Task {
+                    try? await Task.sleep(for: .milliseconds(400))
+                    onEnterPrayer()
+                }
             }
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: prayer.isPrayingByMe ? "hands.clap.fill" : "hands.clap")
+                Image(systemName: prayer.isPrayingByMe ? "hands.sparkles.fill" : "hands.sparkles")
                     .font(.system(size: 14, weight: .medium))
                     .symbolEffect(.bounce, value: isPulsing)
 
-                Text(prayer.isPrayingByMe ? "Praying" : "I'm Praying")
+                Text(prayer.isPrayingByMe ? "Praying" : "Pray with them")
                     .font(.system(size: 13, weight: .semibold, design: .serif))
             }
             .foregroundStyle(prayer.isPrayingByMe ? .white : Theme.goldDark)
@@ -203,25 +211,27 @@ struct PrayerCardView: View {
         .sensoryFeedback(.impact(flexibility: .soft), trigger: prayer.isPrayingByMe)
     }
 
-    private var enterPrayerButton: some View {
-        Button(action: onEnterPrayer) {
-            HStack(spacing: 6) {
-                Image(systemName: "hands.sparkles")
-                    .font(.system(size: 12, weight: .medium))
-                Text("Pray")
-                    .font(.system(size: 13, weight: .semibold, design: .serif))
-            }
-            .foregroundStyle(Theme.textDark)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(
-                Capsule()
-                    .fill(Theme.warmBeige.opacity(0.6))
-                    .overlay(
-                        Capsule()
-                            .stroke(Theme.goldAccent.opacity(0.3), lineWidth: 0.5)
-                    )
-            )
+    private var shareButton: some View {
+        Button {
+            showShareSheet = true
+        } label: {
+            Image(systemName: "square.and.arrow.up")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(Theme.textLight)
+                .frame(width: 38, height: 38)
+                .background(
+                    Circle()
+                        .fill(Theme.warmBeige.opacity(0.5))
+                        .overlay(
+                            Circle()
+                                .stroke(Theme.goldAccent.opacity(0.2), lineWidth: 0.5)
+                        )
+                )
+        }
+        .sheet(isPresented: $showShareSheet) {
+            SharePrayerSheet(prayer: prayer)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
         }
     }
 

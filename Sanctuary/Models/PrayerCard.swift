@@ -22,7 +22,14 @@ nonisolated enum PrayerCategory: String, CaseIterable, Sendable {
     }
 }
 
-nonisolated struct PrayerCard: Identifiable, Sendable {
+nonisolated struct PrayerCard: Identifiable, Sendable, Hashable {
+    nonisolated static func == (lhs: PrayerCard, rhs: PrayerCard) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    nonisolated func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
     let id: UUID
     let initials: String
     let displayName: String

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum CommunitySection: String, CaseIterable {
     case wall = "Wall"
@@ -22,7 +23,9 @@ struct CommunityPrayerWallView: View {
     @State private var activePrayerSession: PrayerCard?
     @State private var showPrayerCompleted: Bool = false
     @State private var completedPrayerName: String = ""
+    @State private var categoriesExpanded: Bool = false
     @Namespace private var pillNamespace
+    @Namespace private var categoryNamespace
 
     var body: some View {
         ZStack {
@@ -110,9 +113,24 @@ struct CommunityPrayerWallView: View {
         .padding(.top, 60)
     }
 
+    @State private var showNewPrayerSheet: Bool = false
+
     private var headerBar: some View {
         HStack {
-            Button {
+            Menu {
+                Button {
+                    showNewPrayerSheet = true
+                } label: {
+                    Label("Submit a Prayer", systemImage: "plus.circle")
+                }
+                Button {
+                } label: {
+                    Label("My Prayer Requests", systemImage: "text.bubble")
+                }
+                Button {
+                } label: {
+                    Label("Community Guidelines", systemImage: "doc.text")
+                }
             } label: {
                 Image(systemName: "line.3.horizontal")
                     .font(.system(size: 20, weight: .medium))
@@ -127,11 +145,26 @@ struct CommunityPrayerWallView: View {
 
             Spacer()
 
-            Color.clear
-                .frame(width: 20, height: 20)
+            Button {
+                showNewPrayerSheet = true
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Theme.goldDark)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        Circle()
+                            .fill(Theme.divineGoldLight.opacity(0.2))
+                    )
+            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
+        .sheet(isPresented: $showNewPrayerSheet) {
+            NewPrayerRequestSheet()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     private var sectionToggle: some View {
@@ -220,22 +253,91 @@ struct CommunityPrayerWallView: View {
     }
 
     private var categoryFilterRow: some View {
-        ScrollView(.horizontal) {
-            HStack(spacing: 20) {
-                ForEach(PrayerCategory.allCases, id: \.self) { category in
-                    CategoryFilterItem(
-                        category: category,
-                        isSelected: viewModel.selectedCategory == category
-                    ) {
-                        withAnimation(.spring(duration: 0.3)) {
-                            viewModel.selectedCategory = category
+        HStack(spacing: 0) {
+            if categoriesExpanded {
+                ScrollView(.horizontal) {
+                    HStack(spacing: 6) {
+                        ForEach(PrayerCategory.allCases, id: \.self) { category in
+                            Button {
+                                withAnimation(.spring(duration: 0.3)) {
+                                    viewModel.selectedCategory = category
+                                    categoriesExpanded = false
+                                }
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: category.icon)
+                                        .font(.system(size: 13, weight: .medium))
+                                    Text(category.rawValue)
+                                        .font(.system(size: 12, weight: .semibold, design: .serif))
+                                }
+                                .foregroundStyle(viewModel.selectedCategory == category ? .white : Theme.textDark)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 9)
+                                .background {
+                                    Capsule()
+                                        .fill(viewModel.selectedCategory == category ? Theme.goldDark : Theme.sandLight)
+                                }
+                            }
+                            .matchedGeometryEffect(id: "cat_\(category.rawValue)", in: categoryNamespace)
+                        }
+
+                        Button {
+                            withAnimation(.spring(duration: 0.4, bounce: 0.2)) {
+                                categoriesExpanded = false
+                            }
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(Theme.textLight)
+                                .frame(width: 30, height: 30)
+                                .background(Circle().fill(Theme.warmBeige.opacity(0.6)))
                         }
                     }
                 }
+                .contentMargins(.horizontal, 20)
+                .scrollIndicators(.hidden)
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .scale(scale: 0.9, anchor: .leading)),
+                    removal: .opacity.combined(with: .scale(scale: 0.9, anchor: .leading))
+                ))
+            } else {
+                Spacer()
+                Button {
+                    withAnimation(.spring(duration: 0.4, bounce: 0.2)) {
+                        categoriesExpanded = true
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: viewModel.selectedCategory.icon)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(Theme.goldDark)
+
+                        Text(viewModel.selectedCategory.rawValue)
+                            .font(.system(size: 13, weight: .semibold, design: .serif))
+                            .foregroundStyle(Theme.textDark)
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Theme.textLight)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(
+                        Capsule()
+                            .fill(Theme.sandLight)
+                            .shadow(color: Theme.sandDark.opacity(0.12), radius: 6, y: 2)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Theme.goldAccent.opacity(0.2), lineWidth: 0.5)
+                            )
+                    )
+                }
+                .matchedGeometryEffect(id: "cat_\(viewModel.selectedCategory.rawValue)", in: categoryNamespace)
+                .sensoryFeedback(.selection, trigger: categoriesExpanded)
+                Spacer()
             }
         }
-        .contentMargins(.horizontal, 24)
-        .scrollIndicators(.hidden)
+        .frame(height: 44)
     }
 
     private var cardCarousel: some View {
@@ -307,29 +409,91 @@ struct CommunityPrayerWallView: View {
     }
 }
 
-struct CategoryFilterItem: View {
-    let category: PrayerCategory
-    let isSelected: Bool
-    let onTap: () -> Void
+struct SharePrayerSheet: View {
+    let prayer: PrayerCard
+    @Environment(\.dismiss) private var dismiss
+    @State private var copied: Bool = false
 
     var body: some View {
-        Button(action: onTap) {
-            VStack(spacing: 8) {
-                ZStack {
-                    Circle()
-                        .fill(isSelected ? Theme.textDark : Theme.warmBeige.opacity(0.6))
-                        .frame(width: 48, height: 48)
+        VStack(spacing: 24) {
+            Text("Share this Prayer")
+                .font(.system(size: 20, weight: .semibold, design: .serif))
+                .foregroundStyle(Theme.textDark)
+                .padding(.top, 20)
 
-                    Image(systemName: category.icon)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundStyle(isSelected ? Theme.cream : Theme.textMedium)
-                }
+            VStack(spacing: 12) {
+                Image(systemName: "quote.opening")
+                    .font(.system(size: 20, weight: .light))
+                    .foregroundStyle(Theme.goldAccent.opacity(0.5))
 
-                Text(category.rawValue)
-                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular, design: .serif))
-                    .foregroundStyle(isSelected ? Theme.textDark : Theme.textLight)
+                Text(prayer.text)
+                    .font(.system(size: 16, weight: .regular, design: .serif))
+                    .foregroundStyle(Theme.textDark)
+                    .lineSpacing(5)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 8)
+
+                Text("— \(prayer.displayName)")
+                    .font(.system(size: 13, design: .serif))
+                    .italic()
+                    .foregroundStyle(Theme.textLight)
             }
+            .padding(24)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Theme.sandLight)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Theme.goldAccent.opacity(0.15), lineWidth: 0.5)
+                    )
+            )
+            .padding(.horizontal, 20)
+
+            VStack(spacing: 10) {
+                Button {
+                    UIPasteboard.general.string = "\"\(prayer.text)\" — \(prayer.displayName) (via Sanctuary)"
+                    copied = true
+                    Task {
+                        try? await Task.sleep(for: .seconds(2))
+                        copied = false
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                            .font(.system(size: 14, weight: .medium))
+                        Text(copied ? "Copied!" : "Copy to Clipboard")
+                            .font(.system(size: 15, weight: .semibold, design: .serif))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Theme.goldAccent, Theme.goldDark],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                    )
+                }
+                .sensoryFeedback(.success, trigger: copied)
+
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Done")
+                        .font(.system(size: 15, weight: .medium, design: .serif))
+                        .foregroundStyle(Theme.textMedium)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                }
+            }
+            .padding(.horizontal, 20)
+
+            Spacer()
         }
-        .sensoryFeedback(.selection, trigger: isSelected)
     }
 }

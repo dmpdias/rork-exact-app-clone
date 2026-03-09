@@ -56,7 +56,14 @@ nonisolated enum FellowshipTimePeriod: String, CaseIterable, Sendable {
     }
 }
 
-nonisolated struct FellowshipMember: Identifiable, Sendable {
+nonisolated struct FellowshipMember: Identifiable, Sendable, Hashable {
+    nonisolated func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    nonisolated static func == (lhs: FellowshipMember, rhs: FellowshipMember) -> Bool {
+        lhs.id == rhs.id
+    }
     let id: UUID
     let displayName: String
     var rank: Int

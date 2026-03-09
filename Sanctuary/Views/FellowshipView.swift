@@ -3,6 +3,7 @@ import SwiftUI
 struct FellowshipView: View {
     @State private var viewModel = FellowshipViewModel()
     @State private var hasAppeared: Bool = false
+    @State private var selectedMember: FellowshipMember?
     @Namespace private var filterNamespace
 
     var body: some View {
@@ -39,6 +40,18 @@ struct FellowshipView: View {
             countryPickerSheet
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $selectedMember) { member in
+            MemberDetailSheet(
+                member: member,
+                virtue: viewModel.selectedVirtue,
+                timePeriod: viewModel.selectedTimePeriod,
+                isBlessed: viewModel.blessedIds.contains(member.id)
+            ) {
+                viewModel.bless(member)
+            }
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
         }
     }
 
@@ -179,23 +192,28 @@ struct FellowshipView: View {
     }
 
     private func podiumColumn(member: FellowshipMember, place: Int, height: CGFloat) -> some View {
-        VStack(spacing: 0) {
-            podiumAvatar(member: member, place: place)
-                .padding(.bottom, 6)
+        Button {
+            selectedMember = member
+        } label: {
+            VStack(spacing: 0) {
+                podiumAvatar(member: member, place: place)
+                    .padding(.bottom, 6)
 
-            Text(member.displayName)
-                .font(.system(size: 13, weight: .semibold, design: .serif))
-                .foregroundStyle(Theme.textDark)
-                .lineLimit(1)
+                Text(member.displayName)
+                    .font(.system(size: 13, weight: .semibold, design: .serif))
+                    .foregroundStyle(Theme.textDark)
+                    .lineLimit(1)
 
-            Text("\(member.score(for: viewModel.selectedTimePeriod)) pts")
-                .font(.system(size: 11, weight: .medium, design: .serif))
-                .foregroundStyle(Theme.textLight)
-                .padding(.bottom, 8)
+                Text("\(member.score(for: viewModel.selectedTimePeriod)) pts")
+                    .font(.system(size: 11, weight: .medium, design: .serif))
+                    .foregroundStyle(Theme.textLight)
+                    .padding(.bottom, 8)
 
-            podiumBase(place: place, height: height)
+                podiumBase(place: place, height: height)
+            }
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
+        .buttonStyle(.plain)
     }
 
     private func podiumAvatar(member: FellowshipMember, place: Int) -> some View {
@@ -294,15 +312,20 @@ struct FellowshipView: View {
 
             LazyVStack(spacing: 3) {
                 ForEach(viewModel.restOfLeaderboard) { member in
-                    LeaderboardRow(
-                        member: member,
-                        virtue: viewModel.selectedVirtue,
-                        timePeriod: viewModel.selectedTimePeriod,
-                        isBlessed: viewModel.blessedIds.contains(member.id),
-                        isBlooming: viewModel.bloomingId == member.id
-                    ) {
-                        viewModel.bless(member)
+                    Button {
+                        selectedMember = member
+                    } label: {
+                        LeaderboardRow(
+                            member: member,
+                            virtue: viewModel.selectedVirtue,
+                            timePeriod: viewModel.selectedTimePeriod,
+                            isBlessed: viewModel.blessedIds.contains(member.id),
+                            isBlooming: viewModel.bloomingId == member.id
+                        ) {
+                            viewModel.bless(member)
+                        }
                     }
+                    .buttonStyle(.plain)
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .move(edge: .bottom)),
                         removal: .opacity
