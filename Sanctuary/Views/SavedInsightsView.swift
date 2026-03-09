@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct SavedInsightsView: View {
     let onBack: () -> Void
@@ -11,6 +12,9 @@ struct SavedInsightsView: View {
     @State private var showNewJournal: Bool = false
     @State private var newJournalTitle: String = ""
     @State private var newJournalBody: String = ""
+    @State private var toastMessage: String = ""
+    @State private var showToast: Bool = false
+    @State private var savedSuccessfully: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,6 +23,27 @@ struct SavedInsightsView: View {
             tabContent
         }
         .background(Theme.cream.ignoresSafeArea())
+        .overlay(alignment: .bottom) {
+            if showToast {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 13))
+                    Text(toastMessage)
+                        .font(.system(size: 13, weight: .medium, design: .serif))
+                }
+                .foregroundStyle(Theme.cream)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule()
+                        .fill(Theme.textDark)
+                        .shadow(color: Theme.sandDark.opacity(0.2), radius: 8, y: 4)
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .padding(.bottom, 20)
+            }
+        }
+        .sensoryFeedback(.success, trigger: savedSuccessfully)
         .onAppear {
             withAnimation(.easeOut(duration: 0.5)) {
                 hasAppeared = true
@@ -133,11 +158,24 @@ struct SavedInsightsView: View {
 
     private var versesContent: some View {
         LazyVStack(spacing: 12) {
-            ForEach(Array(savedVerses.enumerated()), id: \.element.id) { index, verse in
-                SavedVerseCard(verse: verse)
+            if savedVerses.isEmpty {
+                emptyState(icon: "bookmark", title: "No saved verses yet", subtitle: "Bookmark verses during your journey and they'll appear here")
+            } else {
+                ForEach(Array(savedVerses.enumerated()), id: \.element.id) { index, verse in
+                    SavedVerseCard(
+                        verse: verse,
+                        onShare: { shareVerse(verse) },
+                        onRemove: {
+                            withAnimation(.spring(duration: 0.35)) {
+                                savedVerses.removeAll { $0.id == verse.id }
+                            }
+                            showTemporaryToast("Verse removed from collection")
+                        }
+                    )
                     .opacity(hasAppeared ? 1 : 0)
                     .offset(y: hasAppeared ? 0 : 12)
                     .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.06), value: hasAppeared)
+                }
             }
         }
         .padding(.horizontal, 20)
@@ -174,11 +212,23 @@ struct SavedInsightsView: View {
                 .clipShape(.rect(cornerRadius: 14))
             }
 
-            ForEach(Array(journalEntries.enumerated()), id: \.element.id) { index, entry in
-                JournalEntryCard(entry: entry)
+            if journalEntries.isEmpty {
+                emptyState(icon: "note.text", title: "No journal entries yet", subtitle: "Start writing your reflections and they'll be preserved here")
+            } else {
+                ForEach(Array(journalEntries.enumerated()), id: \.element.id) { index, entry in
+                    JournalEntryCard(
+                        entry: entry,
+                        onDelete: {
+                            withAnimation(.spring(duration: 0.35)) {
+                                journalEntries.removeAll { $0.id == entry.id }
+                            }
+                            showTemporaryToast("Journal entry removed")
+                        }
+                    )
                     .opacity(hasAppeared ? 1 : 0)
                     .offset(y: hasAppeared ? 0 : 12)
                     .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.06), value: hasAppeared)
+                }
             }
         }
         .padding(.horizontal, 20)
@@ -190,8 +240,12 @@ struct SavedInsightsView: View {
 
     private var prayerAnswersContent: some View {
         LazyVStack(spacing: 16) {
-            ForEach(groupedPrayerAnswers, id: \.prayer) { group in
-                PrayerAnswerGroup(prayer: group.prayer, answers: group.answers)
+            if prayerAnswers.isEmpty {
+                emptyState(icon: "bubble.left.and.text.bubble.right", title: "No prayer responses yet", subtitle: "When others respond to your prayers, their messages will appear here")
+            } else {
+                ForEach(groupedPrayerAnswers, id: \.prayer) { group in
+                    PrayerAnswerGroup(prayer: group.prayer, answers: group.answers)
+                }
             }
         }
         .padding(.horizontal, 20)
@@ -203,6 +257,57 @@ struct SavedInsightsView: View {
         let grouped = Dictionary(grouping: prayerAnswers, by: { $0.prayerText })
         return grouped.map { (prayer: $0.key, answers: $0.value) }
             .sorted { $0.answers.first?.date ?? .distantPast > $1.answers.first?.date ?? .distantPast }
+    }
+
+    // MARK: - Helpers
+
+    private func emptyState(icon: String, title: String, subtitle: String) -> some View {
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Theme.warmBeige.opacity(0.5))
+                    .frame(width: 64, height: 64)
+                Image(systemName: icon)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(Theme.textLight)
+            }
+
+            Text(title)
+                .font(.system(size: 17, weight: .medium, design: .serif))
+                .foregroundStyle(Theme.textDark)
+
+            Text(subtitle)
+                .font(.system(size: 13, design: .serif))
+                .italic()
+                .foregroundStyle(Theme.textLight)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 48)
+    }
+
+    private func shareVerse(_ verse: SavedVerse) {
+        let shareText = "\"\(verse.text)\"\n\u{2014} \(verse.reference)\n\nShared from Sanctuary"
+        let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let root = scene.windows.first?.rootViewController {
+            var presenter = root
+            while let presented = presenter.presentedViewController {
+                presenter = presented
+            }
+            activityVC.popoverPresentationController?.sourceView = presenter.view
+            presenter.present(activityVC, animated: true)
+        }
+    }
+
+    private func showTemporaryToast(_ message: String) {
+        toastMessage = message
+        withAnimation(.spring(duration: 0.35)) { showToast = true }
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            withAnimation(.easeOut(duration: 0.3)) { showToast = false }
+        }
     }
 
     // MARK: - New Journal Sheet
@@ -279,6 +384,8 @@ struct SavedInsightsView: View {
                         showNewJournal = false
                         newJournalTitle = ""
                         newJournalBody = ""
+                        savedSuccessfully = true
+                        showTemporaryToast("Journal entry saved")
                     }
                     .fontWeight(.semibold)
                     .foregroundStyle(newJournalTitle.isEmpty ? Theme.textLight : Theme.goldAccent)
@@ -311,6 +418,8 @@ nonisolated enum InsightTab: String, CaseIterable, Identifiable, Sendable {
 
 struct SavedVerseCard: View {
     let verse: SavedVerse
+    var onShare: (() -> Void)? = nil
+    var onRemove: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -328,10 +437,28 @@ struct SavedVerseCard: View {
 
                 Spacer()
 
-                Text(verse.dateSaved, style: .date)
-                    .font(.system(size: 11, design: .serif))
-                    .foregroundStyle(Theme.textLight)
+                HStack(spacing: 14) {
+                    Button {
+                        onShare?()
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(Theme.textLight)
+                    }
+
+                    Button {
+                        onRemove?()
+                    } label: {
+                        Image(systemName: "bookmark.slash")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(Theme.textLight)
+                    }
+                }
             }
+
+            Text(verse.dateSaved, style: .date)
+                .font(.system(size: 10, design: .serif))
+                .foregroundStyle(Theme.textLight.opacity(0.7))
         }
         .padding(18)
         .background(
@@ -362,8 +489,10 @@ struct SavedVerseCard: View {
 
 struct JournalEntryCard: View {
     let entry: JournalEntry
+    var onDelete: (() -> Void)? = nil
 
     @State private var isExpanded: Bool = false
+    @State private var showDeleteConfirm: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -388,6 +517,17 @@ struct JournalEntryCard: View {
 
                 Spacer()
 
+                if isExpanded {
+                    Button {
+                        showDeleteConfirm = true
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Theme.textLight.opacity(0.6))
+                    }
+                    .transition(.opacity)
+                }
+
                 Button {
                     withAnimation(.spring(duration: 0.3)) {
                         isExpanded.toggle()
@@ -405,6 +545,11 @@ struct JournalEntryCard: View {
                     .foregroundStyle(Theme.textMedium)
                     .lineSpacing(5)
                     .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .confirmationDialog("Delete this journal entry?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                onDelete?()
             }
         }
         .padding(16)

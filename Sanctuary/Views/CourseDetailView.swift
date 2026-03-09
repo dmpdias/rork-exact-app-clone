@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct CourseDetailView: View {
     let item: JourneyContentItem
@@ -8,6 +9,8 @@ struct CourseDetailView: View {
     @State private var hasAppeared: Bool = false
     @State private var isBeginPressed: Bool = false
     @State private var showPlayer: Bool = false
+    @State private var isBookmarked: Bool = false
+    @State private var showBookmarkToast: Bool = false
 
     var body: some View {
         ZStack {
@@ -56,6 +59,26 @@ struct CourseDetailView: View {
                 .transition(.opacity)
             }
         }
+        .overlay(alignment: .bottom) {
+            if showBookmarkToast {
+                HStack(spacing: 8) {
+                    Image(systemName: isBookmarked ? "checkmark.circle.fill" : "bookmark.slash")
+                        .font(.system(size: 13))
+                    Text(isBookmarked ? "Journey saved to collection" : "Journey removed from collection")
+                        .font(.system(size: 13, weight: .medium, design: .serif))
+                }
+                .foregroundStyle(Theme.cream)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule()
+                        .fill(Theme.textDark)
+                        .shadow(color: Theme.sandDark.opacity(0.2), radius: 8, y: 4)
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .padding(.bottom, 20)
+            }
+        }
         .onAppear {
             withAnimation(.easeOut(duration: 0.5)) {
                 hasAppeared = true
@@ -76,10 +99,31 @@ struct CourseDetailView: View {
                     .foregroundStyle(Theme.goldAccent)
                 }
                 Spacer()
-                Button {} label: {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(Theme.textLight)
+                HStack(spacing: 14) {
+                    Button {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.4)) {
+                            isBookmarked.toggle()
+                        }
+                        showBookmarkToast = true
+                        Task {
+                            try? await Task.sleep(for: .seconds(2))
+                            withAnimation { showBookmarkToast = false }
+                        }
+                    } label: {
+                        Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(isBookmarked ? Theme.goldAccent : Theme.textLight)
+                            .scaleEffect(isBookmarked ? 1.1 : 1.0)
+                    }
+                    .sensoryFeedback(.impact(weight: .light), trigger: isBookmarked)
+
+                    Button {
+                        shareCourse()
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(Theme.textLight)
+                    }
                 }
             }
             .padding(.horizontal, 20)
@@ -319,6 +363,20 @@ struct CourseDetailView: View {
             return String(format: "%.1fk", thousands)
         }
         return "\(n)"
+    }
+
+    private func shareCourse() {
+        let shareText = "\(item.title) — \(item.subtitle)\n\n\(item.synopsis)\n\nShared from Sanctuary"
+        let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let root = scene.windows.first?.rootViewController {
+            var presenter = root
+            while let presented = presenter.presentedViewController {
+                presenter = presented
+            }
+            activityVC.popoverPresentationController?.sourceView = presenter.view
+            presenter.present(activityVC, animated: true)
+        }
     }
 }
 
