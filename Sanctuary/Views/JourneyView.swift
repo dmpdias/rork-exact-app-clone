@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct JourneyView: View {
     @State private var hasAppeared: Bool = false
@@ -7,6 +8,13 @@ struct JourneyView: View {
     @State private var bloomCategory: JourneyCategory? = nil
     @State private var scrollOffset: CGFloat = 0
     @State private var showInsights: Bool = false
+    @State private var isVerseBookmarked: Bool = false
+    @State private var showShareSheet: Bool = false
+    @State private var selectedBead: EmotionalBead? = nil
+    @State private var showBeadPrayer: Bool = false
+    @State private var selectedContinueItem: ContinuePathItem? = nil
+    @State private var showContinueCourse: Bool = false
+    @State private var dailyVerse: DailyVerse = DailyVerse.forToday()
 
     var body: some View {
         ZStack {
@@ -18,7 +26,29 @@ struct JourneyView: View {
                 .opacity(0.35)
                 .offset(y: scrollOffset * 0.05)
 
-            if showInsights {
+            if showBeadPrayer, let bead = selectedBead {
+                EmotionalPrayerPlayerView(bead: bead) {
+                    withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
+                        showBeadPrayer = false
+                        selectedBead = nil
+                    }
+                }
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .scale(scale: 1.02)),
+                    removal: .opacity.combined(with: .scale(scale: 0.98))
+                ))
+            } else if showContinueCourse, let pathItem = selectedContinueItem {
+                CourseDetailView(item: pathItem.toJourneyContentItem(), category: pathItem.category) {
+                    withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
+                        showContinueCourse = false
+                        selectedContinueItem = nil
+                    }
+                }
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .trailing)),
+                    removal: .opacity.combined(with: .move(edge: .trailing))
+                ))
+            } else if showInsights {
                 SavedInsightsView {
                     withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
                         showInsights = false
@@ -116,14 +146,14 @@ struct JourneyView: View {
                 }
                 .padding(.top, 16)
 
-                Text("\"For I know the plans I have for you,\" declares the Lord, \"plans to prosper you and not to harm you, plans to give you hope and a future.\"")
+                Text("\"\(dailyVerse.text)\"")
                     .font(.system(size: 17, weight: .regular, design: .serif))
                     .italic()
                     .foregroundStyle(Theme.textDark.opacity(0.85))
                     .lineSpacing(5)
 
                 HStack {
-                    Text("JEREMIAH 29:11")
+                    Text(dailyVerse.reference.uppercased())
                         .font(.system(size: 11, weight: .bold, design: .serif))
                         .tracking(1)
                         .foregroundStyle(Theme.goldAccent)
@@ -131,12 +161,21 @@ struct JourneyView: View {
                     Spacer()
 
                     HStack(spacing: 14) {
-                        Button {} label: {
-                            Image(systemName: "bookmark")
+                        Button {
+                            withAnimation(.spring(duration: 0.3, bounce: 0.4)) {
+                                isVerseBookmarked.toggle()
+                            }
+                        } label: {
+                            Image(systemName: isVerseBookmarked ? "bookmark.fill" : "bookmark")
                                 .font(.system(size: 16))
-                                .foregroundStyle(Theme.textLight)
+                                .foregroundStyle(isVerseBookmarked ? Theme.goldAccent : Theme.textLight)
+                                .scaleEffect(isVerseBookmarked ? 1.15 : 1.0)
                         }
-                        Button {} label: {
+                        .sensoryFeedback(.impact(weight: .light), trigger: isVerseBookmarked)
+
+                        Button {
+                            shareVerse()
+                        } label: {
                             Image(systemName: "square.and.arrow.up")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Theme.textLight)
@@ -202,7 +241,12 @@ struct JourneyView: View {
             ScrollView(.horizontal) {
                 HStack(spacing: 0) {
                     ForEach(Array(EmotionalBead.allCases.enumerated()), id: \.element.id) { index, bead in
-                        EmotionalBeadView(bead: bead, isLast: index == EmotionalBead.allCases.count - 1)
+                        EmotionalBeadView(bead: bead, isLast: index == EmotionalBead.allCases.count - 1) {
+                            selectedBead = bead
+                            withAnimation(.spring(duration: 0.5, bounce: 0.15)) {
+                                showBeadPrayer = true
+                            }
+                        }
                     }
                 }
                 .padding(.vertical, 8)
@@ -226,24 +270,14 @@ struct JourneyView: View {
             }
 
             VStack(spacing: 10) {
-                JourneyListRow(
-                    icon: "flame.fill",
-                    title: "40 Days of Faith",
-                    subtitle: "Day 12 of 40",
-                    progress: 0.3
-                )
-                JourneyListRow(
-                    icon: "book.closed.fill",
-                    title: "Genesis to Revelation",
-                    subtitle: "Week 8 — Exodus 14",
-                    progress: 0.15
-                )
-                JourneyListRow(
-                    icon: "leaf.fill",
-                    title: "Psalms of Comfort",
-                    subtitle: "Psalm 23 completed",
-                    progress: 0.6
-                )
+                ForEach(ContinuePathItem.samples) { item in
+                    JourneyListRow(item: item) {
+                        selectedContinueItem = item
+                        withAnimation(.spring(duration: 0.4, bounce: 0.15)) {
+                            showContinueCourse = true
+                        }
+                    }
+                }
             }
         }
         .opacity(hasAppeared ? 1 : 0)
@@ -268,6 +302,20 @@ struct JourneyView: View {
             .animation(.easeOut(duration: 0.4), value: bloomCategory != nil)
             .allowsHitTesting(false)
             .ignoresSafeArea()
+    }
+
+    private func shareVerse() {
+        let shareText = "\"\(dailyVerse.text)\"\n— \(dailyVerse.reference)\n\nShared from Sanctuary"
+        let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let root = scene.windows.first?.rootViewController {
+            var presenter = root
+            while let presented = presenter.presentedViewController {
+                presenter = presented
+            }
+            activityVC.popoverPresentationController?.sourceView = presenter.view
+            presenter.present(activityVC, animated: true)
+        }
     }
 }
 
@@ -339,15 +387,19 @@ struct JourneyCategoryCard: View {
 struct EmotionalBeadView: View {
     let bead: EmotionalBead
     let isLast: Bool
+    let onTap: () -> Void
+
+    @State private var isPulsing: Bool = false
 
     var body: some View {
         HStack(spacing: 0) {
             VStack(spacing: 8) {
-                Button {} label: {
+                Button(action: onTap) {
                     ZStack {
                         Circle()
                             .fill(Theme.goldAccent.opacity(0.12))
                             .frame(width: 56, height: 56)
+                            .scaleEffect(isPulsing ? 1.08 : 1.0)
 
                         Circle()
                             .fill(
@@ -365,7 +417,7 @@ struct EmotionalBeadView: View {
                             .foregroundStyle(Theme.goldAccent)
                     }
                 }
-                .sensoryFeedback(.impact(weight: .light), trigger: false)
+                .sensoryFeedback(.impact(weight: .medium), trigger: isPulsing)
 
                 Text(bead.rawValue)
                     .font(.system(size: 12, weight: .medium, design: .serif))
@@ -385,68 +437,73 @@ struct EmotionalBeadView: View {
                     .offset(y: -12)
             }
         }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true).delay(Double.random(in: 0...1))) {
+                isPulsing = true
+            }
+        }
     }
 }
 
 struct JourneyListRow: View {
-    let icon: String
-    let title: String
-    let subtitle: String
-    let progress: Double
+    let item: ContinuePathItem
+    let onTap: () -> Void
 
     var body: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(Theme.warmBeige.opacity(0.6))
-                    .frame(width: 42, height: 42)
-                Image(systemName: icon)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(Theme.goldAccent)
-            }
+        Button(action: onTap) {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(Theme.warmBeige.opacity(0.6))
+                        .frame(width: 42, height: 42)
+                    Image(systemName: item.icon)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(Theme.goldAccent)
+                }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(size: 15, weight: .medium, design: .serif))
-                    .foregroundStyle(Theme.textDark)
-                Text(subtitle)
-                    .font(.system(size: 12, design: .serif))
-                    .italic()
-                    .foregroundStyle(Theme.textLight)
-            }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(item.title)
+                        .font(.system(size: 15, weight: .medium, design: .serif))
+                        .foregroundStyle(Theme.textDark)
+                    Text(item.subtitle)
+                        .font(.system(size: 12, design: .serif))
+                        .italic()
+                        .foregroundStyle(Theme.textLight)
+                }
 
-            Spacer(minLength: 4)
+                Spacer(minLength: 4)
 
-            ZStack {
-                Circle()
-                    .stroke(Theme.sandDark.opacity(0.15), lineWidth: 3)
-                    .frame(width: 32, height: 32)
-                Circle()
-                    .trim(from: 0, to: progress)
-                    .stroke(Theme.goldAccent, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                    .frame(width: 32, height: 32)
-                    .rotationEffect(.degrees(-90))
-                Text("\(Int(progress * 100))%")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(Theme.textMedium)
+                ZStack {
+                    Circle()
+                        .stroke(Theme.sandDark.opacity(0.15), lineWidth: 3)
+                        .frame(width: 32, height: 32)
+                    Circle()
+                        .trim(from: 0, to: item.progress)
+                        .stroke(Theme.goldAccent, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                        .frame(width: 32, height: 32)
+                        .rotationEffect(.degrees(-90))
+                    Text("\(Int(item.progress * 100))%")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(Theme.textMedium)
+                }
             }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(
-                    LinearGradient(
-                        colors: [Theme.sandLight.opacity(0.6), Theme.cream.opacity(0.4)],
-                        startPoint: .leading,
-                        endPoint: .trailing
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(
+                        LinearGradient(
+                            colors: [Theme.sandLight.opacity(0.6), Theme.cream.opacity(0.4)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
                     )
-                )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(Theme.sandDark.opacity(0.08), lineWidth: 1)
-        )
-        .clipShape(.rect(cornerRadius: 14))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Theme.sandDark.opacity(0.08), lineWidth: 1)
+            )
+            .clipShape(.rect(cornerRadius: 14))
+        }
     }
 }
