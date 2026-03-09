@@ -223,12 +223,19 @@ struct OnboardingView: View {
 
     private var aboutYouScreen: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                questionHeader(
-                    label: "GETTING TO KNOW YOU",
-                    title: "Tell us about\nyourself.",
-                    subtitle: "This helps us personalize your journey."
-                )
+            VStack(alignment: .leading, spacing: 28) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Step 1 of 6")
+                        .font(.system(size: 12, weight: .medium, design: .serif))
+                        .foregroundStyle(Theme.goldDark)
+                        .padding(.horizontal, 24)
+
+                    questionHeader(
+                        label: "GETTING TO KNOW YOU",
+                        title: "Tell us about\nyourself.",
+                        subtitle: "This helps us personalize your journey."
+                    )
+                }
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("YOUR NAME")
@@ -291,25 +298,39 @@ struct OnboardingView: View {
                         .foregroundStyle(Theme.textLight)
                         .padding(.horizontal, 24)
 
-                    HStack(spacing: 8) {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                         ForEach(Gender.allCases) { gender in
                             Button {
                                 withAnimation(.spring(response: 0.3)) {
                                     vm.selectedGender = gender
                                 }
                             } label: {
-                                Text(gender.rawValue)
-                                    .font(.system(size: 12, weight: .medium, design: .serif))
-                                    .foregroundStyle(vm.selectedGender == gender ? Theme.cream : Theme.textMedium)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(vm.selectedGender == gender ? Theme.cardBrown : Theme.sandLight.opacity(0.5))
-                                            .strokeBorder(vm.selectedGender == gender ? Theme.goldAccent.opacity(0.4) : Theme.sandDark.opacity(0.12), lineWidth: 1)
-                                    )
+                                let isSelected = vm.selectedGender == gender
+                                HStack(spacing: 12) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(isSelected ? Theme.goldAccent.opacity(0.15) : Theme.sandLight.opacity(0.8))
+                                            .frame(width: 36, height: 36)
+
+                                        Image(systemName: gender.icon)
+                                            .font(.system(size: 15))
+                                            .foregroundStyle(isSelected ? Theme.goldDark : Theme.textLight)
+                                    }
+
+                                    Text(gender.rawValue)
+                                        .font(.system(size: 14, weight: .medium, design: .serif))
+                                        .foregroundStyle(isSelected ? Theme.textDark : Theme.textMedium)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.75)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 14)
+                                .padding(.horizontal, 14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(isSelected ? Theme.goldAccent.opacity(0.06) : Theme.sandLight.opacity(0.4))
+                                        .strokeBorder(isSelected ? Theme.goldAccent.opacity(0.45) : Theme.sandDark.opacity(0.12), lineWidth: isSelected ? 1.5 : 1)
+                                )
                             }
                             .buttonStyle(.plain)
                         }
@@ -327,123 +348,36 @@ struct OnboardingView: View {
                     Button {
                         vm.showCountryPicker = true
                     } label: {
-                        HStack {
+                        HStack(spacing: 14) {
+                            ZStack {
+                                Circle()
+                                    .fill(vm.selectedCountry != nil ? Theme.goldAccent.opacity(0.12) : Theme.sandLight.opacity(0.8))
+                                    .frame(width: 40, height: 40)
+
+                                Image(systemName: "globe")
+                                    .font(.system(size: 17))
+                                    .foregroundStyle(vm.selectedCountry != nil ? Theme.goldDark : Theme.textLight)
+                            }
+
                             Text(vm.selectedCountry?.rawValue ?? "Select your country")
-                                .font(.system(.subheadline, design: .serif))
+                                .font(.system(.body, design: .serif))
                                 .foregroundStyle(vm.selectedCountry != nil ? Theme.textDark : Theme.textLight.opacity(0.6))
 
                             Spacer()
 
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(Theme.textLight)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Theme.textLight.opacity(0.5))
                         }
-                        .padding(.vertical, 14)
-                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
                         .background(
                             RoundedRectangle(cornerRadius: 14)
-                                .fill(Theme.sandLight.opacity(0.6))
-                                .strokeBorder(vm.selectedCountry != nil ? Theme.goldAccent.opacity(0.3) : Theme.sandDark.opacity(0.2), lineWidth: 1)
+                                .fill(Theme.sandLight.opacity(0.5))
+                                .strokeBorder(vm.selectedCountry != nil ? Theme.goldAccent.opacity(0.3) : Theme.sandDark.opacity(0.15), lineWidth: 1)
                         )
                     }
                     .buttonStyle(.plain)
-                    .padding(.horizontal, 24)
-                }
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("YOUR CHURCH LIFE")
-                        .font(.system(size: 11, weight: .semibold))
-                        .tracking(1.5)
-                        .foregroundStyle(Theme.textLight)
-                        .padding(.horizontal, 24)
-
-                    Text("How do you participate in the Mass?")
-                        .font(.system(.body, design: .serif))
-                        .fontWeight(.medium)
-                        .foregroundStyle(Theme.textDark)
-                        .padding(.horizontal, 24)
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(MassAttendance.allCases) { mass in
-                                Button {
-                                    withAnimation(.spring(response: 0.3)) {
-                                        vm.massAttendance = mass
-                                        vm.showInsight = false
-                                    }
-                                } label: {
-                                    Text(mass.rawValue)
-                                        .font(.system(size: 14, weight: .medium, design: .serif))
-                                        .foregroundStyle(vm.massAttendance == mass ? Theme.cream : Theme.textMedium)
-                                        .padding(.horizontal, 18)
-                                        .padding(.vertical, 10)
-                                        .background(
-                                            Capsule()
-                                                .fill(vm.massAttendance == mass ? Theme.cardBrown : Theme.sandLight.opacity(0.6))
-                                                .strokeBorder(vm.massAttendance == mass ? Theme.goldAccent.opacity(0.4) : Theme.sandDark.opacity(0.15), lineWidth: 1)
-                                        )
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
-                    .contentMargins(.horizontal, 24)
-
-                    if let mass = vm.massAttendance, let insight = mass.insight {
-                        Text(insight)
-                            .font(.system(size: 13, design: .serif))
-                            .italic()
-                            .foregroundStyle(Theme.goldDark)
-                            .padding(.horizontal, 24)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("SACRAMENTS")
-                        .font(.system(size: 11, weight: .semibold))
-                        .tracking(1.5)
-                        .foregroundStyle(Theme.textLight)
-                        .padding(.horizontal, 24)
-
-                    Text("Which sacraments guide your life?")
-                        .font(.system(.body, design: .serif))
-                        .fontWeight(.medium)
-                        .foregroundStyle(Theme.textDark)
-                        .padding(.horizontal, 24)
-
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                        ForEach(Sacrament.allCases) { sacrament in
-                            Button {
-                                withAnimation(.spring(response: 0.3)) {
-                                    vm.toggleSacrament(sacrament)
-                                }
-                            } label: {
-                                let isSelected = vm.selectedSacraments.contains(sacrament)
-                                HStack(spacing: 10) {
-                                    Image(systemName: isSelected ? "checkmark.square.fill" : "square")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(isSelected ? Theme.goldDark : Theme.textLight)
-
-                                    Text(sacrament.rawValue)
-                                        .font(.system(size: 14, weight: .medium, design: .serif))
-                                        .foregroundStyle(isSelected ? Theme.textDark : Theme.textMedium)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.8)
-
-                                    Spacer()
-                                }
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(isSelected ? Theme.goldAccent.opacity(0.08) : Theme.sandLight.opacity(0.5))
-                                        .strokeBorder(isSelected ? Theme.goldAccent.opacity(0.35) : Theme.sandDark.opacity(0.12), lineWidth: 1)
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
                     .padding(.horizontal, 24)
                 }
 
@@ -455,13 +389,21 @@ struct OnboardingView: View {
                         ))
                 }
 
-                Spacer(minLength: 100)
+                Spacer(minLength: 120)
             }
             .padding(.top, 24)
             .safeAreaInset(edge: .bottom) {
-                continueButton { vm.nextStep() }
-                    .opacity(vm.canProceed ? 1 : 0.4)
-                    .disabled(!vm.canProceed)
+                VStack(spacing: 10) {
+                    continueButton { vm.nextStep() }
+                        .opacity(vm.canProceed ? 1 : 0.4)
+                        .disabled(!vm.canProceed)
+
+                    Text("Next: Discover your spiritual style")
+                        .font(.system(size: 12, design: .serif))
+                        .italic()
+                        .foregroundStyle(Theme.textLight)
+                        .padding(.bottom, 4)
+                }
             }
         }
         .scrollDismissesKeyboard(.interactively)
