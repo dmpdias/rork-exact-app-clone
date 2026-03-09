@@ -142,7 +142,7 @@ struct OnboardingView: View {
                         .font(.system(size: 42, weight: .bold, design: .serif))
                         .foregroundStyle(Theme.textDark)
 
-                    Text("Your sacred space for\nprayer, scripture & growth.")
+                    Text("Your daily companion for\nCatholic life")
                         .font(.system(size: 18, design: .serif))
                         .italic()
                         .foregroundStyle(Theme.textMedium)
@@ -150,7 +150,7 @@ struct OnboardingView: View {
                         .lineSpacing(4)
                 }
 
-                Text("Let's build your personal journey together.\nIt only takes a moment.")
+                Text("Walk with us in faith.\nNo judgment, just accompaniment.")
                     .font(.system(.subheadline, design: .serif))
                     .foregroundStyle(Theme.textLight)
                     .multilineTextAlignment(.center)
