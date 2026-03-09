@@ -51,38 +51,29 @@ struct OnboardingView: View {
 
     private var backgroundLayer: some View {
         ZStack {
-            if vm.currentStep == 1 {
-                Color(red: 0.10, green: 0.09, blue: 0.08)
-                    .ignoresSafeArea()
-            } else if vm.currentStep == 2 {
-                Color(red: 0.08, green: 0.07, blue: 0.06)
-                    .ignoresSafeArea()
-            } else {
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.96, green: 0.93, blue: 0.88),
-                        Color(red: 0.92, green: 0.88, blue: 0.82),
-                        Color(red: 0.94, green: 0.90, blue: 0.84)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+            LinearGradient(
+                colors: [
+                    Color(red: 0.96, green: 0.93, blue: 0.88),
+                    Color(red: 0.92, green: 0.88, blue: 0.82),
+                    Color(red: 0.94, green: 0.90, blue: 0.84)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
-                Canvas { context, size in
-                    for seed in particleSeeds {
-                        let point = CGPoint(x: seed.x * size.width, y: seed.y * size.height)
-                        context.opacity = seed.opacity
-                        context.fill(
-                            Circle().path(in: CGRect(x: point.x, y: point.y, width: seed.size, height: seed.size)),
-                            with: .color(Theme.particleDot)
-                        )
-                    }
+            Canvas { context, size in
+                for seed in particleSeeds {
+                    let point = CGPoint(x: seed.x * size.width, y: seed.y * size.height)
+                    context.opacity = seed.opacity
+                    context.fill(
+                        Circle().path(in: CGRect(x: point.x, y: point.y, width: seed.size, height: seed.size)),
+                        with: .color(Theme.particleDot)
+                    )
                 }
-                .ignoresSafeArea()
             }
+            .ignoresSafeArea()
         }
-        .animation(.easeInOut(duration: 0.6), value: vm.currentStep)
     }
 
     private var topBar: some View {
@@ -213,14 +204,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Conversation Screen (Dark Themed)
-
-    private let darkText = Color(red: 0.92, green: 0.88, blue: 0.82)
-    private let darkTextMuted = Color(red: 0.60, green: 0.56, blue: 0.50)
-    private let darkGold = Color(red: 0.82, green: 0.68, blue: 0.40)
-    private let darkCardBg = Color(red: 0.16, green: 0.15, blue: 0.13)
-    private let darkInputBg = Color(red: 0.14, green: 0.13, blue: 0.11)
-    private let darkBubbleBg = Color(red: 0.18, green: 0.17, blue: 0.15)
+    // MARK: - Conversation Screen
 
     private var conversationScreen: some View {
         ScrollViewReader { proxy in
@@ -233,16 +217,16 @@ struct OnboardingView: View {
                         VStack(spacing: 8) {
                             ZStack {
                                 Circle()
-                                    .fill(darkGold.opacity(0.15))
+                                    .fill(Theme.goldDark.opacity(0.12))
                                     .frame(width: 56, height: 56)
                                 Image(systemName: "flame.fill")
                                     .font(.system(size: 24))
-                                    .foregroundStyle(darkGold)
+                                    .foregroundStyle(Theme.goldDark)
                             }
                             Text("AMAVE")
                                 .font(.system(size: 10, weight: .bold))
                                 .tracking(3)
-                                .foregroundStyle(darkTextMuted)
+                                .foregroundStyle(Theme.textLight)
                         }
                         Spacer()
                     }
@@ -381,23 +365,24 @@ struct OnboardingView: View {
     private func counselorBubble(_ text: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Circle()
-                .fill(darkGold.opacity(0.2))
+                .fill(Theme.goldDark.opacity(0.15))
                 .frame(width: 28, height: 28)
                 .overlay(
                     Image(systemName: "flame.fill")
                         .font(.system(size: 12))
-                        .foregroundStyle(darkGold)
+                        .foregroundStyle(Theme.goldDark)
                 )
 
             Text(text)
                 .font(.system(size: 16, design: .serif))
-                .foregroundStyle(darkText)
+                .foregroundStyle(Theme.textDark)
                 .lineSpacing(5)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 18)
-                        .fill(darkBubbleBg)
+                        .fill(Color.white.opacity(0.55))
+                        .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
                 )
                 .frame(maxWidth: 280, alignment: .leading)
         }
@@ -409,12 +394,19 @@ struct OnboardingView: View {
             Spacer()
             Text(text)
                 .font(.system(size: 16, weight: .medium, design: .serif))
-                .foregroundStyle(Color(red: 0.10, green: 0.09, blue: 0.08))
+                .foregroundStyle(Color.white)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 18)
-                        .fill(darkGold)
+                        .fill(
+                            LinearGradient(
+                                colors: [Theme.cardBrown, Theme.cardOlive],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .shadow(color: Color.black.opacity(0.06), radius: 4, y: 2)
                 )
         }
         .padding(.bottom, 12)
@@ -422,10 +414,10 @@ struct OnboardingView: View {
 
     private var nameInputField: some View {
         HStack(spacing: 12) {
-            TextField("", text: $vm.userName, prompt: Text("Type your name...").foregroundStyle(darkTextMuted.opacity(0.6)))
+            TextField("", text: $vm.userName, prompt: Text("Type your name...").foregroundStyle(Theme.textLight.opacity(0.6)))
                 .font(.system(size: 17, design: .serif))
-                .foregroundStyle(darkText)
-                .tint(darkGold)
+                .foregroundStyle(Theme.textDark)
+                .tint(Theme.goldDark)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.words)
                 .onSubmit {
@@ -437,7 +429,7 @@ struct OnboardingView: View {
             } label: {
                 Image(systemName: "arrow.up.circle.fill")
                     .font(.system(size: 32))
-                    .foregroundStyle(vm.userName.trimmingCharacters(in: .whitespaces).isEmpty ? darkTextMuted.opacity(0.3) : darkGold)
+                    .foregroundStyle(vm.userName.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.textLight.opacity(0.3) : Theme.goldDark)
             }
             .disabled(vm.userName.trimmingCharacters(in: .whitespaces).isEmpty)
         }
@@ -445,8 +437,9 @@ struct OnboardingView: View {
         .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(darkInputBg)
-                .strokeBorder(darkGold.opacity(0.15), lineWidth: 1)
+                .fill(Color.white.opacity(0.5))
+                .strokeBorder(Theme.goldDark.opacity(0.2), lineWidth: 1)
+                .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
         )
         .padding(.leading, 38)
         .padding(.bottom, 12)
@@ -461,18 +454,19 @@ struct OnboardingView: View {
                     VStack(spacing: 8) {
                         Image(systemName: gender.icon)
                             .font(.system(size: 20))
-                            .foregroundStyle(darkGold)
+                            .foregroundStyle(Theme.goldDark)
 
                         Text(gender.rawValue)
                             .font(.system(size: 12, weight: .medium, design: .serif))
-                            .foregroundStyle(darkText)
+                            .foregroundStyle(Theme.textDark)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(darkCardBg)
-                            .strokeBorder(darkGold.opacity(0.15), lineWidth: 1)
+                            .fill(Color.white.opacity(0.5))
+                            .strokeBorder(Theme.goldDark.opacity(0.2), lineWidth: 1)
+                            .shadow(color: Color.black.opacity(0.03), radius: 3, y: 1)
                     )
                 }
                 .buttonStyle(.plain)
@@ -490,13 +484,14 @@ struct OnboardingView: View {
                 } label: {
                     Text(age.rawValue)
                         .font(.system(size: 14, weight: .medium, design: .serif))
-                        .foregroundStyle(darkText)
+                        .foregroundStyle(Theme.textDark)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(darkCardBg)
-                                .strokeBorder(darkGold.opacity(0.15), lineWidth: 1)
+                                .fill(Color.white.opacity(0.5))
+                                .strokeBorder(Theme.goldDark.opacity(0.2), lineWidth: 1)
+                                .shadow(color: Color.black.opacity(0.03), radius: 3, y: 1)
                         )
                 }
                 .buttonStyle(.plain)
@@ -511,20 +506,21 @@ struct OnboardingView: View {
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 14))
-                    .foregroundStyle(darkTextMuted)
+                    .foregroundStyle(Theme.textLight)
 
-                TextField("", text: $vm.countrySearch, prompt: Text("Search country...").foregroundStyle(darkTextMuted.opacity(0.6)))
+                TextField("", text: $vm.countrySearch, prompt: Text("Search country...").foregroundStyle(Theme.textLight.opacity(0.6)))
                     .font(.system(size: 15, design: .serif))
-                    .foregroundStyle(darkText)
-                    .tint(darkGold)
+                    .foregroundStyle(Theme.textDark)
+                    .tint(Theme.goldDark)
                     .autocorrectionDisabled()
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(darkInputBg)
-                    .strokeBorder(darkGold.opacity(0.1), lineWidth: 1)
+                    .fill(Color.white.opacity(0.5))
+                    .strokeBorder(Theme.goldDark.opacity(0.15), lineWidth: 1)
+                    .shadow(color: Color.black.opacity(0.03), radius: 3, y: 1)
             )
 
             ScrollView {
@@ -539,7 +535,7 @@ struct OnboardingView: View {
 
                                 Text(country.name)
                                     .font(.system(size: 15, design: .serif))
-                                    .foregroundStyle(darkText)
+                                    .foregroundStyle(Theme.textDark)
 
                                 Spacer()
                             }
@@ -547,7 +543,7 @@ struct OnboardingView: View {
                             .padding(.vertical, 10)
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .fill(darkCardBg)
+                                    .fill(Color.white.opacity(0.4))
                             )
                         }
                         .buttonStyle(.plain)
@@ -563,18 +559,18 @@ struct OnboardingView: View {
     private var typingIndicator: some View {
         HStack(alignment: .top, spacing: 10) {
             Circle()
-                .fill(darkGold.opacity(0.2))
+                .fill(Theme.goldDark.opacity(0.15))
                 .frame(width: 28, height: 28)
                 .overlay(
                     Image(systemName: "flame.fill")
                         .font(.system(size: 12))
-                        .foregroundStyle(darkGold)
+                        .foregroundStyle(Theme.goldDark)
                 )
 
             HStack(spacing: 6) {
                 ForEach(0..<3, id: \.self) { i in
                     Circle()
-                        .fill(darkTextMuted)
+                        .fill(Theme.textLight)
                         .frame(width: 7, height: 7)
                         .opacity(0.6)
                         .animation(
@@ -590,7 +586,8 @@ struct OnboardingView: View {
             .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: 18)
-                    .fill(darkBubbleBg)
+                    .fill(Color.white.opacity(0.55))
+                    .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
             )
         }
         .padding(.bottom, 12)
@@ -612,12 +609,18 @@ struct OnboardingView: View {
                     Image(systemName: "globe.americas.fill")
                         .font(.system(size: 14, weight: .semibold))
                 }
-                .foregroundStyle(Color(red: 0.10, green: 0.09, blue: 0.08))
+                .foregroundStyle(Theme.cream)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 16)
                 .background(
                     Capsule()
-                        .fill(darkGold)
+                        .fill(
+                            LinearGradient(
+                                colors: [Theme.cardBrown, Theme.cardOlive],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                 )
             }
             Spacer()
@@ -646,63 +649,84 @@ struct OnboardingView: View {
 
     // MARK: - World Map Screen
 
+    @State private var globeRotation: Double = 0
+    @State private var globePulse: Bool = false
+
     private var worldMapScreen: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: 28) {
+            VStack(spacing: 24) {
                 ZStack {
-                    ForEach(0..<3, id: \.self) { i in
+                    ForEach(0..<4, id: \.self) { i in
                         Circle()
-                            .strokeBorder(darkGold.opacity(vm.showMapStats ? 0.1 : 0), lineWidth: 1)
-                            .frame(width: CGFloat(180 + i * 50), height: CGFloat(180 + i * 50))
-                            .animation(.easeOut(duration: 1.5).delay(Double(i) * 0.2), value: vm.showMapStats)
+                            .strokeBorder(
+                                Theme.goldAccent.opacity(vm.showMapStats ? 0.12 - Double(i) * 0.02 : 0),
+                                lineWidth: 1
+                            )
+                            .frame(width: CGFloat(260 + i * 40), height: CGFloat(260 + i * 40))
+                            .scaleEffect(vm.showMapStats ? 1 : 0.8)
+                            .animation(.easeOut(duration: 1.8).delay(Double(i) * 0.15), value: vm.showMapStats)
                     }
 
                     ZStack {
                         Circle()
                             .fill(
                                 RadialGradient(
-                                    colors: [darkGold.opacity(0.15), Color.clear],
+                                    colors: [Theme.goldLight.opacity(0.2), Theme.goldAccent.opacity(0.05), Color.clear],
                                     center: .center,
-                                    startRadius: 30,
-                                    endRadius: 90
+                                    startRadius: 40,
+                                    endRadius: 130
                                 )
                             )
-                            .frame(width: 180, height: 180)
+                            .frame(width: 260, height: 260)
+                            .scaleEffect(globePulse ? 1.05 : 1.0)
+                            .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: globePulse)
 
-                        Image(systemName: "globe.americas.fill")
-                            .font(.system(size: 90))
-                            .foregroundStyle(
+                        GlobeCanvasView(rotation: vm.mapRotation + globeRotation)
+                            .frame(width: 220, height: 220)
+
+                        Circle()
+                            .fill(
                                 LinearGradient(
-                                    colors: [darkGold.opacity(0.8), darkGold.opacity(0.4)],
-                                    startPoint: .top,
-                                    endPoint: .bottom
+                                    colors: [Color.white.opacity(0.15), Color.clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
                                 )
                             )
-                            .rotation3DEffect(.degrees(vm.mapRotation * 0.3), axis: (x: 0, y: 1, z: 0))
+                            .frame(width: 220, height: 220)
+                            .allowsHitTesting(false)
 
                         if vm.showMapStats {
                             Circle()
-                                .fill(darkGold)
-                                .frame(width: 12, height: 12)
-                                .shadow(color: darkGold.opacity(0.6), radius: 8)
+                                .fill(Theme.goldAccent)
+                                .frame(width: 14, height: 14)
+                                .shadow(color: Theme.goldAccent.opacity(0.8), radius: 12)
+                                .shadow(color: Theme.goldAccent.opacity(0.4), radius: 24)
+                                .scaleEffect(globePulse ? 1.2 : 1.0)
+                                .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: globePulse)
                                 .transition(.scale.combined(with: .opacity))
                         }
+                    }
+                }
+                .onAppear {
+                    globePulse = true
+                    withAnimation(.linear(duration: 60).repeatForever(autoreverses: false)) {
+                        globeRotation = 360
                     }
                 }
 
                 if let country = vm.selectedCountry {
                     VStack(spacing: 8) {
                         Text(country.flag)
-                            .font(.system(size: 44))
+                            .font(.system(size: 48))
                             .opacity(vm.showMapStats ? 1 : 0)
                             .scaleEffect(vm.showMapStats ? 1 : 0.5)
                             .animation(.spring(response: 0.5).delay(0.2), value: vm.showMapStats)
 
                         Text(country.name)
                             .font(.system(size: 28, weight: .bold, design: .serif))
-                            .foregroundStyle(darkText)
+                            .foregroundStyle(Theme.textDark)
                             .opacity(vm.showMapStats ? 1 : 0)
                             .offset(y: vm.showMapStats ? 0 : 10)
                             .animation(.spring(response: 0.5).delay(0.3), value: vm.showMapStats)
@@ -713,22 +737,22 @@ struct OnboardingView: View {
                             HStack(spacing: 6) {
                                 Image(systemName: "person.3.fill")
                                     .font(.system(size: 14))
-                                    .foregroundStyle(darkGold)
+                                    .foregroundStyle(Theme.goldDark)
 
                                 Text("\(country.prayerCount.formatted()) souls")
                                     .font(.system(size: 20, weight: .bold, design: .serif))
-                                    .foregroundStyle(darkGold)
+                                    .foregroundStyle(Theme.goldDark)
 
                                 Text("praying from here")
                                     .font(.system(size: 16, design: .serif))
-                                    .foregroundStyle(darkTextMuted)
+                                    .foregroundStyle(Theme.textMedium)
                             }
                             .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
 
                             Text("You are special because\n\(country.specialReason).")
                                 .font(.system(size: 16, design: .serif))
                                 .italic()
-                                .foregroundStyle(darkText.opacity(0.85))
+                                .foregroundStyle(Theme.textDark.opacity(0.85))
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(4)
                                 .padding(.horizontal, 32)
@@ -754,12 +778,18 @@ struct OnboardingView: View {
                         Image(systemName: "arrow.right")
                             .font(.system(size: 14, weight: .semibold))
                     }
-                    .foregroundStyle(Color(red: 0.10, green: 0.09, blue: 0.08))
+                    .foregroundStyle(Theme.cream)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 18)
                     .background(
                         Capsule()
-                            .fill(darkGold)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Theme.cardBrown, Theme.cardOlive],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
                     )
                 }
                 .padding(.horizontal, 32)
