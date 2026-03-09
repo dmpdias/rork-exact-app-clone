@@ -1,21 +1,5 @@
 import SwiftUI
 
-nonisolated enum Gender: String, CaseIterable, Identifiable, Codable, Sendable {
-    case male = "Male"
-    case female = "Female"
-    case other = "Prefer not to say"
-
-    var id: String { rawValue }
-
-    var icon: String {
-        switch self {
-        case .male: return "figure.stand"
-        case .female: return "figure.stand.dress"
-        case .other: return "person.fill"
-        }
-    }
-}
-
 nonisolated enum AgeRange: String, CaseIterable, Identifiable, Codable, Sendable {
     case teen = "13–17"
     case youngAdult = "18–24"
@@ -25,40 +9,6 @@ nonisolated enum AgeRange: String, CaseIterable, Identifiable, Codable, Sendable
     case elder = "65+"
 
     var id: String { rawValue }
-}
-
-nonisolated struct CountryInfo: Identifiable, Sendable {
-    let id: String
-    let name: String
-    let flag: String
-    let latitude: Double
-    let longitude: Double
-    let prayerCount: Int
-    let specialReason: String
-
-    static let countries: [CountryInfo] = [
-        CountryInfo(id: "US", name: "United States", flag: "\u{1F1FA}\u{1F1F8}", latitude: 39.8, longitude: -98.5, prayerCount: 12840, specialReason: "your faith community is one of the most vibrant in the world"),
-        CountryInfo(id: "BR", name: "Brazil", flag: "\u{1F1E7}\u{1F1F7}", latitude: -14.2, longitude: -51.9, prayerCount: 9720, specialReason: "Brazilian hearts carry a fire for worship like nowhere else"),
-        CountryInfo(id: "GB", name: "United Kingdom", flag: "\u{1F1EC}\u{1F1E7}", latitude: 55.3, longitude: -3.4, prayerCount: 4350, specialReason: "centuries of prayer echo through your land"),
-        CountryInfo(id: "NG", name: "Nigeria", flag: "\u{1F1F3}\u{1F1EC}", latitude: 9.08, longitude: 8.67, prayerCount: 8900, specialReason: "your nation's devotion is inspiring believers across Africa"),
-        CountryInfo(id: "PH", name: "Philippines", flag: "\u{1F1F5}\u{1F1ED}", latitude: 12.87, longitude: 121.77, prayerCount: 7650, specialReason: "Filipino faith shines as a beacon across Asia"),
-        CountryInfo(id: "MX", name: "Mexico", flag: "\u{1F1F2}\u{1F1FD}", latitude: 23.63, longitude: -102.55, prayerCount: 6280, specialReason: "your deep-rooted devotion brings light to the Americas"),
-        CountryInfo(id: "KR", name: "South Korea", flag: "\u{1F1F0}\u{1F1F7}", latitude: 35.9, longitude: 127.76, prayerCount: 5400, specialReason: "Korea's prayer warriors are legendary across the world"),
-        CountryInfo(id: "DE", name: "Germany", flag: "\u{1F1E9}\u{1F1EA}", latitude: 51.16, longitude: 10.45, prayerCount: 3200, specialReason: "the Reformation's homeland still carries a torch for truth"),
-        CountryInfo(id: "CA", name: "Canada", flag: "\u{1F1E8}\u{1F1E6}", latitude: 56.13, longitude: -106.34, prayerCount: 4100, specialReason: "Canadian kindness and faith go hand in hand"),
-        CountryInfo(id: "AU", name: "Australia", flag: "\u{1F1E6}\u{1F1FA}", latitude: -25.27, longitude: 133.77, prayerCount: 3050, specialReason: "your faith shines from the southern hemisphere"),
-        CountryInfo(id: "IN", name: "India", flag: "\u{1F1EE}\u{1F1F3}", latitude: 20.59, longitude: 78.96, prayerCount: 6700, specialReason: "India's spiritual depth enriches the global body of believers"),
-        CountryInfo(id: "ZA", name: "South Africa", flag: "\u{1F1FF}\u{1F1E6}", latitude: -30.55, longitude: 22.93, prayerCount: 3800, specialReason: "your rainbow nation carries a powerful testimony of hope"),
-        CountryInfo(id: "KE", name: "Kenya", flag: "\u{1F1F0}\u{1F1EA}", latitude: -0.02, longitude: 37.90, prayerCount: 4500, specialReason: "Kenyan devotion runs deep and inspires all of East Africa"),
-        CountryInfo(id: "CO", name: "Colombia", flag: "\u{1F1E8}\u{1F1F4}", latitude: 4.57, longitude: -74.29, prayerCount: 3900, specialReason: "Colombia's faith journey is a story of incredible hope"),
-        CountryInfo(id: "GH", name: "Ghana", flag: "\u{1F1EC}\u{1F1ED}", latitude: 7.94, longitude: -1.02, prayerCount: 4200, specialReason: "Ghana's worship culture is a gift to the world"),
-        CountryInfo(id: "PT", name: "Portugal", flag: "\u{1F1F5}\u{1F1F9}", latitude: 39.39, longitude: -8.22, prayerCount: 2100, specialReason: "your land of explorers now charts new paths in faith"),
-        CountryInfo(id: "FR", name: "France", flag: "\u{1F1EB}\u{1F1F7}", latitude: 46.22, longitude: 2.21, prayerCount: 2800, specialReason: "the quiet faith of France holds deep beauty"),
-        CountryInfo(id: "ES", name: "Spain", flag: "\u{1F1EA}\u{1F1F8}", latitude: 40.46, longitude: -3.74, prayerCount: 2600, specialReason: "Spanish passion for life extends beautifully into faith"),
-        CountryInfo(id: "IT", name: "Italy", flag: "\u{1F1EE}\u{1F1F9}", latitude: 41.87, longitude: 12.56, prayerCount: 2900, specialReason: "the heart of Christendom still beats strong in Italy"),
-        CountryInfo(id: "JP", name: "Japan", flag: "\u{1F1EF}\u{1F1F5}", latitude: 36.20, longitude: 138.25, prayerCount: 1800, specialReason: "your quiet devotion carries a unique and beautiful strength"),
-        CountryInfo(id: "OTHER", name: "Other", flag: "\u{1F30D}", latitude: 20.0, longitude: 10.0, prayerCount: 47000, specialReason: "God's love reaches every corner of the earth — including yours")
-    ]
 }
 
 nonisolated enum PrayerFrequency: String, CaseIterable, Identifiable, Codable, Sendable {
@@ -112,7 +62,7 @@ nonisolated enum ScriptureFrequency: String, CaseIterable, Identifiable, Codable
     func insight(for prayer: PrayerFrequency?) -> String {
         switch self {
         case .never:
-            return "No worries — Amave will guide you gently into scripture with short, meaningful passages chosen just for you."
+            return "No worries — Sanctuary will guide you gently into scripture with short, meaningful passages chosen just for you."
         case .occasionally:
             return "Even occasional reading plants seeds. People who pair scripture with prayer — like you're doing — see 3x more spiritual growth."
         case .weekly:
@@ -183,11 +133,11 @@ nonisolated enum SpiritualChallenge: String, CaseIterable, Identifiable, Codable
     func insight(for goals: [SpiritualGoal]) -> String {
         switch self {
         case .consistency:
-            return "73% of believers share this challenge. Amave's gentle daily reminders and streak tracking are designed exactly for this — small, faithful steps."
+            return "73% of believers share this challenge. Sanctuary's gentle daily reminders and streak tracking are designed exactly for this — small, faithful steps."
         case .doubt:
             return "Doubt is not the opposite of faith — it's part of the journey. Our Counselor feature offers a safe space to explore your deepest questions."
         case .distraction:
-            return "In our noisy world, 68% struggle with this. Amave's guided moments create a sacred bubble — even 5 minutes can center your spirit."
+            return "In our noisy world, 68% struggle with this. Sanctuary's guided moments create a sacred bubble — even 5 minutes can center your spirit."
         case .loneliness:
             if goals.contains(.community) {
                 return "You're already seeking community — that's beautiful. Our Fellowship and Prayer Wall connect you with believers who understand your journey."
@@ -197,9 +147,9 @@ nonisolated enum SpiritualChallenge: String, CaseIterable, Identifiable, Codable
             if goals.contains(.knowledge) {
                 return "Your desire to learn is a gift. Our Journey courses break down scripture into beautiful, digestible lessons with rich context."
             }
-            return "Scripture becomes clearer with guidance. Amave's Living Word feature brings passages alive with context and reflection."
+            return "Scripture becomes clearer with guidance. Sanctuary's Living Word feature brings passages alive with context and reflection."
         case .time:
-            return "Even 5 minutes with God can transform a day. Amave is built for busy lives — quick devotions, bite-sized scripture, prayers on the go."
+            return "Even 5 minutes with God can transform a day. Sanctuary is built for busy lives — quick devotions, bite-sized scripture, prayers on the go."
         }
     }
 }

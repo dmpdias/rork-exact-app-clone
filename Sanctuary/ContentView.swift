@@ -8,7 +8,7 @@ struct ContentView: View {
             Tab(value: 0) {
                 SanctuaryHomeView()
             } label: {
-                Label("Amave", systemImage: "house.fill")
+                Label("Sanctuary", systemImage: "house.fill")
             }
 
             Tab(value: 1) {
