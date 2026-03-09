@@ -22,7 +22,8 @@ class OnboardingViewModel {
     var ratingStars: Int = 0
     var countrySearchText: String = ""
 
-    let totalSteps: Int = 9
+    let totalSteps: Int = 8
+    var showCountryPicker: Bool = false
 
     var progress: Double {
         Double(currentStep) / Double(totalSteps + 1)
@@ -40,26 +41,18 @@ class OnboardingViewModel {
     var canProceed: Bool {
         switch currentStep {
         case 0: return true
-        case 1: return !userName.trimmingCharacters(in: .whitespaces).isEmpty && selectedAge != nil
-        case 2: return selectedGender != nil && selectedCountry != nil
-        case 3: return selectedPrayerFrequency != nil
-        case 4: return selectedScriptureFrequency != nil
-        case 5: return !selectedGoals.isEmpty
-        case 6: return selectedChallenge != nil
-        case 7: return selectedTestimonialReaction != nil
+        case 1: return !userName.trimmingCharacters(in: .whitespaces).isEmpty && selectedAge != nil && selectedGender != nil && selectedCountry != nil
+        case 2: return selectedPrayerFrequency != nil
+        case 3: return selectedScriptureFrequency != nil
+        case 4: return !selectedGoals.isEmpty
+        case 5: return selectedChallenge != nil
+        case 6: return selectedTestimonialReaction != nil
         default: return true
         }
     }
 
     func nextStep() {
-        if currentStep >= 3 && currentStep <= 6 && !showInsight {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                showInsight = true
-            }
-            return
-        }
-
-        if currentStep == 2 && !showInsight {
+        if currentStep >= 1 && currentStep <= 5 && !showInsight {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 showInsight = true
             }
@@ -106,10 +99,10 @@ class OnboardingViewModel {
 
     var currentInsight: String? {
         switch currentStep {
-        case 2: return selectedCountry?.communityInsight(age: selectedAge, gender: selectedGender)
-        case 3: return selectedPrayerFrequency?.insight(for: selectedAge)
-        case 4: return selectedScriptureFrequency?.insight(for: selectedPrayerFrequency)
-        case 6: return selectedChallenge?.insight(for: selectedGoals)
+        case 1: return selectedCountry?.communityInsight(age: selectedAge, gender: selectedGender)
+        case 2: return selectedPrayerFrequency?.insight(for: selectedAge)
+        case 3: return selectedScriptureFrequency?.insight(for: selectedPrayerFrequency)
+        case 5: return selectedChallenge?.insight(for: selectedGoals)
         default: return nil
         }
     }

@@ -20,15 +20,14 @@ struct OnboardingView: View {
 
                 TabView(selection: $vm.currentStep) {
                     welcomeScreen.tag(0)
-                    nameAgeScreen.tag(1)
-                    genderCountryScreen.tag(2)
-                    prayerScreen.tag(3)
-                    scriptureScreen.tag(4)
-                    goalsScreen.tag(5)
-                    challengeScreen.tag(6)
-                    testimonialScreen.tag(7)
-                    planScreen.tag(8)
-                    signatureScreen.tag(9)
+                    aboutYouScreen.tag(1)
+                    prayerScreen.tag(2)
+                    scriptureScreen.tag(3)
+                    goalsScreen.tag(4)
+                    challengeScreen.tag(5)
+                    testimonialScreen.tag(6)
+                    planScreen.tag(7)
+                    signatureScreen.tag(8)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.spring(response: 0.5, dampingFraction: 0.85), value: vm.currentStep)
@@ -219,15 +218,15 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Name & Age
+    // MARK: - About You (Name, Age, Gender, Country)
 
-    private var nameAgeScreen: some View {
+    private var aboutYouScreen: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 32) {
+            VStack(alignment: .leading, spacing: 24) {
                 questionHeader(
                     label: "GETTING TO KNOW YOU",
-                    title: "What should we\ncall you?",
-                    subtitle: "Your name helps us personalize your experience."
+                    title: "Tell us about\nyourself.",
+                    subtitle: "This helps us personalize your journey."
                 )
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -239,7 +238,7 @@ struct OnboardingView: View {
                     TextField("", text: $vm.userName, prompt: Text("Enter your first name").foregroundStyle(Theme.textLight.opacity(0.6)))
                         .font(.system(size: 20, design: .serif))
                         .foregroundStyle(Theme.textDark)
-                        .padding(.vertical, 16)
+                        .padding(.vertical, 14)
                         .padding(.horizontal, 20)
                         .background(
                             RoundedRectangle(cornerRadius: 14)
@@ -249,14 +248,14 @@ struct OnboardingView: View {
                 }
                 .padding(.horizontal, 24)
 
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text("YOUR AGE")
                         .font(.system(size: 11, weight: .semibold))
                         .tracking(1.5)
                         .foregroundStyle(Theme.textLight)
                         .padding(.horizontal, 24)
 
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                         ForEach(AgeRange.allCases) { age in
                             Button {
                                 withAnimation(.spring(response: 0.3)) {
@@ -268,7 +267,7 @@ struct OnboardingView: View {
                                     .fontWeight(.medium)
                                     .foregroundStyle(vm.selectedAge == age ? Theme.cream : Theme.textDark)
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 14)
+                                    .padding(.vertical, 12)
                                     .background(
                                         RoundedRectangle(cornerRadius: 12)
                                             .fill(vm.selectedAge == age ? Theme.cardBrown : Theme.sandLight.opacity(0.6))
@@ -284,62 +283,32 @@ struct OnboardingView: View {
                     .padding(.horizontal, 24)
                 }
 
-                Spacer(minLength: 100)
-            }
-            .padding(.top, 24)
-            .safeAreaInset(edge: .bottom) {
-                continueButton { vm.nextStep() }
-                    .opacity(vm.canProceed ? 1 : 0.4)
-                    .disabled(!vm.canProceed)
-            }
-        }
-        .scrollDismissesKeyboard(.interactively)
-        .scrollIndicators(.hidden)
-    }
-
-    // MARK: - Gender & Country
-
-    private var genderCountryScreen: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                questionHeader(
-                    label: "ABOUT YOU",
-                    title: "Tell us a little\nmore.",
-                    subtitle: "This helps us connect you with your community."
-                )
-
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text("GENDER")
                         .font(.system(size: 11, weight: .semibold))
                         .tracking(1.5)
                         .foregroundStyle(Theme.textLight)
                         .padding(.horizontal, 24)
 
-                    HStack(spacing: 10) {
+                    HStack(spacing: 8) {
                         ForEach(Gender.allCases) { gender in
                             Button {
                                 withAnimation(.spring(response: 0.3)) {
                                     vm.selectedGender = gender
                                 }
                             } label: {
-                                VStack(spacing: 8) {
-                                    Image(systemName: gender.icon)
-                                        .font(.system(size: 20))
-                                        .foregroundStyle(vm.selectedGender == gender ? Theme.goldDark : Theme.textMedium)
-
-                                    Text(gender.rawValue)
-                                        .font(.system(size: 11, weight: .medium, design: .serif))
-                                        .foregroundStyle(vm.selectedGender == gender ? Theme.textDark : Theme.textMedium)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.8)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(vm.selectedGender == gender ? Theme.goldAccent.opacity(0.12) : Theme.sandLight.opacity(0.5))
-                                        .strokeBorder(vm.selectedGender == gender ? Theme.goldAccent.opacity(0.4) : Theme.sandDark.opacity(0.12), lineWidth: 1)
-                                )
+                                Text(gender.rawValue)
+                                    .font(.system(size: 12, weight: .medium, design: .serif))
+                                    .foregroundStyle(vm.selectedGender == gender ? Theme.cream : Theme.textMedium)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(vm.selectedGender == gender ? Theme.cardBrown : Theme.sandLight.opacity(0.5))
+                                            .strokeBorder(vm.selectedGender == gender ? Theme.goldAccent.opacity(0.4) : Theme.sandDark.opacity(0.12), lineWidth: 1)
+                                    )
                             }
                             .buttonStyle(.plain)
                         }
@@ -347,60 +316,36 @@ struct OnboardingView: View {
                     .padding(.horizontal, 24)
                 }
 
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text("COUNTRY")
                         .font(.system(size: 11, weight: .semibold))
                         .tracking(1.5)
                         .foregroundStyle(Theme.textLight)
                         .padding(.horizontal, 24)
 
-                    HStack(spacing: 12) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 14))
-                            .foregroundStyle(Theme.textLight)
+                    Button {
+                        vm.showCountryPicker = true
+                    } label: {
+                        HStack {
+                            Text(vm.selectedCountry?.rawValue ?? "Select your country")
+                                .font(.system(.subheadline, design: .serif))
+                                .foregroundStyle(vm.selectedCountry != nil ? Theme.textDark : Theme.textLight.opacity(0.6))
 
-                        TextField("", text: $vm.countrySearchText, prompt: Text("Search country").foregroundStyle(Theme.textLight.opacity(0.5)))
-                            .font(.system(.subheadline, design: .serif))
-                            .foregroundStyle(Theme.textDark)
-                    }
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Theme.sandLight.opacity(0.6))
-                            .strokeBorder(Theme.sandDark.opacity(0.15), lineWidth: 1)
-                    )
-                    .padding(.horizontal, 24)
+                            Spacer()
 
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                        ForEach(vm.filteredCountries) { country in
-                            Button {
-                                withAnimation(.spring(response: 0.3)) {
-                                    vm.selectedCountry = country
-                                    vm.showInsight = false
-                                }
-                            } label: {
-                                HStack(spacing: 8) {
-                                    Text(country.flag)
-                                        .font(.system(size: 18))
-
-                                    Text(country.rawValue)
-                                        .font(.system(size: 13, weight: .medium, design: .serif))
-                                        .foregroundStyle(vm.selectedCountry == country ? Theme.textDark : Theme.textMedium)
-                                        .lineLimit(1)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 11)
-                                .padding(.horizontal, 12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(vm.selectedCountry == country ? Theme.goldAccent.opacity(0.12) : Theme.sandLight.opacity(0.4))
-                                        .strokeBorder(vm.selectedCountry == country ? Theme.goldAccent.opacity(0.4) : Theme.sandDark.opacity(0.1), lineWidth: 1)
-                                )
-                            }
-                            .buttonStyle(.plain)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(Theme.textLight)
                         }
+                        .padding(.vertical, 14)
+                        .padding(.horizontal, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Theme.sandLight.opacity(0.6))
+                                .strokeBorder(vm.selectedCountry != nil ? Theme.goldAccent.opacity(0.3) : Theme.sandDark.opacity(0.2), lineWidth: 1)
+                        )
                     }
+                    .buttonStyle(.plain)
                     .padding(.horizontal, 24)
                 }
 
@@ -423,6 +368,53 @@ struct OnboardingView: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .scrollIndicators(.hidden)
+        .sheet(isPresented: $vm.showCountryPicker) {
+            countryPickerSheet
+        }
+    }
+
+    private var countryPickerSheet: some View {
+        NavigationStack {
+            List {
+                ForEach(vm.filteredCountries) { country in
+                    Button {
+                        withAnimation(.spring(response: 0.3)) {
+                            vm.selectedCountry = country
+                            vm.showInsight = false
+                        }
+                        vm.showCountryPicker = false
+                    } label: {
+                        HStack {
+                            Text(country.rawValue)
+                                .font(.system(.body, design: .serif))
+                                .foregroundStyle(Theme.textDark)
+
+                            Spacer()
+
+                            if vm.selectedCountry == country {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(Theme.goldDark)
+                            }
+                        }
+                    }
+                }
+            }
+            .searchable(text: $vm.countrySearchText, prompt: "Search country")
+            .navigationTitle("Country")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        vm.showCountryPicker = false
+                    }
+                    .font(.system(.body, design: .serif))
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 
     // MARK: - Prayer
@@ -747,7 +739,7 @@ struct OnboardingView: View {
             .safeAreaInset(edge: .bottom) {
                 continueButton(title: "Sign Your Commitment") {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-                        vm.currentStep = 9
+                        vm.currentStep = 8
                     }
                 }
             }
