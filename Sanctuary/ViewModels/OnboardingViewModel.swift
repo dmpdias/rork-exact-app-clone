@@ -46,11 +46,10 @@ class OnboardingViewModel {
         case 0: return true
         case 1: return !userName.trimmingCharacters(in: .whitespaces).isEmpty && selectedAge != nil && selectedGender != nil && selectedCountry != nil
         case 2: return selectedSpiritualStyle != nil
-        case 3: return selectedPrayerFrequency != nil
-        case 4: return selectedScriptureFrequency != nil
-        case 5: return !selectedGoals.isEmpty
-        case 6: return selectedChallenge != nil
-        case 7: return selectedTestimonialReaction != nil
+        case 3: return selectedPrayerFrequency != nil && selectedScriptureFrequency != nil
+        case 4: return !selectedGoals.isEmpty
+        case 5: return selectedChallenge != nil
+        case 6: return selectedTestimonialReaction != nil
         default: return true
         }
     }
@@ -114,11 +113,22 @@ class OnboardingViewModel {
         case 1:
             return selectedCountry?.communityInsight(age: selectedAge, gender: selectedGender)
         case 2: return selectedSpiritualStyle != nil ? "All paths lead to Christ. You're welcome here." : nil
-        case 3: return selectedPrayerFrequency?.insight(for: selectedAge)
-        case 4: return selectedScriptureFrequency?.insight(for: selectedPrayerFrequency)
-        case 6: return selectedChallenge?.insight(for: selectedGoals)
+        case 3: return faithPracticeInsight
+        case 5: return selectedChallenge?.insight(for: selectedGoals)
         default: return nil
         }
+    }
+
+    var faithPracticeInsight: String? {
+        guard let prayer = selectedPrayerFrequency, let scripture = selectedScriptureFrequency else { return nil }
+        let isBeginning = (prayer == .rarely && (scripture == .never || scripture == .occasionally)) || ((prayer == .rarely || prayer == .weekly) && scripture == .never)
+        if isBeginning {
+            return "Perfect starting point. We'll grow together, step by step."
+        }
+        if prayer == .daily || prayer == .multiple || scripture == .daily {
+            return "Your consistency is beautiful. Let's deepen it."
+        }
+        return prayer.insight(for: selectedAge)
     }
 
     func generatePlan() -> PersonalizedPlan {

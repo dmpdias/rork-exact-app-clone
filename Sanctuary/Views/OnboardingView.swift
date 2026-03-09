@@ -22,13 +22,12 @@ struct OnboardingView: View {
                     welcomeScreen.tag(0)
                     aboutYouScreen.tag(1)
                     spiritualPathScreen.tag(2)
-                    prayerScreen.tag(3)
-                    scriptureScreen.tag(4)
-                    goalsScreen.tag(5)
-                    challengeScreen.tag(6)
-                    testimonialScreen.tag(7)
-                    planScreen.tag(8)
-                    signatureScreen.tag(9)
+                    faithPracticeScreen.tag(3)
+                    goalsScreen.tag(4)
+                    challengeScreen.tag(5)
+                    testimonialScreen.tag(6)
+                    planScreen.tag(7)
+                    signatureScreen.tag(8)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.spring(response: 0.5, dampingFraction: 0.85), value: vm.currentStep)
@@ -565,35 +564,77 @@ struct OnboardingView: View {
         .scaleEffect(isSelected ? 1.02 : 1.0)
     }
 
-    // MARK: - Prayer
+    // MARK: - Faith Practice (Prayer + Scripture merged)
 
-    private var prayerScreen: some View {
+    private var faithPracticeScreen: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                questionHeader(
-                    label: "YOUR PRAYER LIFE",
-                    title: "How often do you\npray?",
-                    subtitle: "There's no wrong answer — every prayer counts."
-                )
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Step 3 of 6")
+                        .font(.system(size: 12, weight: .medium, design: .serif))
+                        .foregroundStyle(Theme.goldDark)
+                        .padding(.horizontal, 24)
 
-                VStack(spacing: 10) {
-                    ForEach(PrayerFrequency.allCases) { freq in
-                        Button {
-                            withAnimation(.spring(response: 0.3)) {
-                                vm.selectedPrayerFrequency = freq
-                                vm.showInsight = false
-                            }
-                        } label: {
-                            optionRow(
-                                icon: freq.icon,
-                                text: freq.rawValue,
-                                isSelected: vm.selectedPrayerFrequency == freq
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
+                    questionHeader(
+                        label: "YOUR FAITH PRACTICE",
+                        title: "Prayer & Scripture",
+                        subtitle: "Two pillars of a faithful life. Where are you today?"
+                    )
                 }
-                .padding(.horizontal, 24)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("YOUR PRAYER LIFE")
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(1.5)
+                        .foregroundStyle(Theme.textLight)
+                        .padding(.horizontal, 24)
+
+                    VStack(spacing: 8) {
+                        ForEach(PrayerFrequency.allCases) { freq in
+                            Button {
+                                withAnimation(.spring(response: 0.3)) {
+                                    vm.selectedPrayerFrequency = freq
+                                    vm.showInsight = false
+                                }
+                            } label: {
+                                optionRow(
+                                    icon: freq.icon,
+                                    text: freq.rawValue,
+                                    isSelected: vm.selectedPrayerFrequency == freq
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                }
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("SCRIPTURE READING")
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(1.5)
+                        .foregroundStyle(Theme.textLight)
+                        .padding(.horizontal, 24)
+
+                    VStack(spacing: 8) {
+                        ForEach(ScriptureFrequency.allCases) { freq in
+                            Button {
+                                withAnimation(.spring(response: 0.3)) {
+                                    vm.selectedScriptureFrequency = freq
+                                    vm.showInsight = false
+                                }
+                            } label: {
+                                optionRow(
+                                    icon: freq.icon,
+                                    text: freq.rawValue,
+                                    isSelected: vm.selectedScriptureFrequency == freq
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                }
 
                 if vm.showInsight, let insight = vm.currentInsight {
                     insightCard(insight)
@@ -603,59 +644,7 @@ struct OnboardingView: View {
                         ))
                 }
 
-                Spacer(minLength: 100)
-            }
-            .padding(.top, 24)
-            .safeAreaInset(edge: .bottom) {
-                continueButton {
-                    vm.nextStep()
-                }
-                .opacity(vm.canProceed ? 1 : 0.4)
-                .disabled(!vm.canProceed)
-            }
-        }
-        .scrollIndicators(.hidden)
-    }
-
-    // MARK: - Scripture
-
-    private var scriptureScreen: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                questionHeader(
-                    label: "SCRIPTURE READING",
-                    title: "How often do you\nread the Bible?",
-                    subtitle: "Scripture is food for the soul."
-                )
-
-                VStack(spacing: 10) {
-                    ForEach(ScriptureFrequency.allCases) { freq in
-                        Button {
-                            withAnimation(.spring(response: 0.3)) {
-                                vm.selectedScriptureFrequency = freq
-                                vm.showInsight = false
-                            }
-                        } label: {
-                            optionRow(
-                                icon: freq.icon,
-                                text: freq.rawValue,
-                                isSelected: vm.selectedScriptureFrequency == freq
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 24)
-
-                if vm.showInsight, let insight = vm.currentInsight {
-                    insightCard(insight)
-                        .transition(.asymmetric(
-                            insertion: .scale(scale: 0.95).combined(with: .opacity),
-                            removal: .opacity
-                        ))
-                }
-
-                Spacer(minLength: 100)
+                Spacer(minLength: 120)
             }
             .padding(.top, 24)
             .safeAreaInset(edge: .bottom) {
@@ -887,7 +876,7 @@ struct OnboardingView: View {
             .safeAreaInset(edge: .bottom) {
                 continueButton(title: "Sign Your Commitment") {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-                        vm.currentStep = 9
+                        vm.currentStep = 8
                     }
                 }
             }
