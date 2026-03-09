@@ -23,11 +23,8 @@ struct OnboardingView: View {
                     aboutYouScreen.tag(1)
                     spiritualPathScreen.tag(2)
                     faithPracticeScreen.tag(3)
-                    goalsScreen.tag(4)
-                    challengeScreen.tag(5)
-                    testimonialScreen.tag(6)
-                    planScreen.tag(7)
-                    signatureScreen.tag(8)
+                    planScreen.tag(4)
+                    signatureScreen.tag(5)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.spring(response: 0.5, dampingFraction: 0.85), value: vm.currentStep)
@@ -224,7 +221,7 @@ struct OnboardingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Step 1 of 6")
+                    Text("Step 1 of 5")
                         .font(.system(size: 12, weight: .medium, design: .serif))
                         .foregroundStyle(Theme.goldDark)
                         .padding(.horizontal, 24)
@@ -570,7 +567,7 @@ struct OnboardingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Step 3 of 6")
+                    Text("Step 3 of 5")
                         .font(.system(size: 12, weight: .medium, design: .serif))
                         .foregroundStyle(Theme.goldDark)
                         .padding(.horizontal, 24)
@@ -587,6 +584,12 @@ struct OnboardingView: View {
                         .font(.system(size: 11, weight: .semibold))
                         .tracking(1.5)
                         .foregroundStyle(Theme.textLight)
+                        .padding(.horizontal, 24)
+
+                    Text("How often do you talk to God? Whether it's a morning offering, a quick prayer before meals, or a full Rosary — every conversation counts.")
+                        .font(.system(size: 14, design: .serif))
+                        .foregroundStyle(Theme.textMedium)
+                        .lineSpacing(3)
                         .padding(.horizontal, 24)
 
                     VStack(spacing: 8) {
@@ -614,6 +617,12 @@ struct OnboardingView: View {
                         .font(.system(size: 11, weight: .semibold))
                         .tracking(1.5)
                         .foregroundStyle(Theme.textLight)
+                        .padding(.horizontal, 24)
+
+                    Text("How often do you open the Bible? From daily Gospel readings to occasional study — we'll match your pace with the right passages.")
+                        .font(.system(size: 14, design: .serif))
+                        .foregroundStyle(Theme.textMedium)
+                        .lineSpacing(3)
                         .padding(.horizontal, 24)
 
                     VStack(spacing: 8) {
@@ -656,114 +665,6 @@ struct OnboardingView: View {
         .scrollIndicators(.hidden)
     }
 
-    // MARK: - Goals
-
-    private var goalsScreen: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                questionHeader(
-                    label: "YOUR HEART'S DESIRE",
-                    title: "What are you\nseeking?",
-                    subtitle: "Choose up to 3 that resonate with your spirit."
-                )
-
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    ForEach(SpiritualGoal.allCases) { goal in
-                        Button {
-                            withAnimation(.spring(response: 0.3)) {
-                                vm.toggleGoal(goal)
-                            }
-                        } label: {
-                            goalCard(goal)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 24)
-
-                if !vm.selectedGoals.isEmpty {
-                    VStack(spacing: 6) {
-                        HStack(spacing: 4) {
-                            ForEach(vm.selectedGoals) { goal in
-                                Text(goal.rawValue)
-                                    .font(.system(size: 12, weight: .medium, design: .serif))
-                                    .foregroundStyle(Theme.cream)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 6)
-                                    .background(Capsule().fill(goal.color.opacity(0.8)))
-                            }
-                        }
-
-                        Text("\(vm.selectedGoals.count) of 3 selected")
-                            .font(.system(size: 12, design: .serif))
-                            .foregroundStyle(Theme.textLight)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 4)
-                }
-
-                Spacer(minLength: 100)
-            }
-            .padding(.top, 24)
-            .safeAreaInset(edge: .bottom) {
-                continueButton { vm.nextStep() }
-                    .opacity(vm.canProceed ? 1 : 0.4)
-                    .disabled(!vm.canProceed)
-            }
-        }
-        .scrollIndicators(.hidden)
-    }
-
-    // MARK: - Challenge
-
-    private var challengeScreen: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                questionHeader(
-                    label: "BEING HONEST",
-                    title: "What's your biggest\nchallenge?",
-                    subtitle: "We all face struggles — naming them is the first step."
-                )
-
-                VStack(spacing: 10) {
-                    ForEach(SpiritualChallenge.allCases) { challenge in
-                        Button {
-                            withAnimation(.spring(response: 0.3)) {
-                                vm.selectedChallenge = challenge
-                                vm.showInsight = false
-                            }
-                        } label: {
-                            optionRow(
-                                icon: challenge.icon,
-                                text: challenge.rawValue,
-                                isSelected: vm.selectedChallenge == challenge
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 24)
-
-                if vm.showInsight, let insight = vm.currentInsight {
-                    insightCard(insight)
-                        .transition(.asymmetric(
-                            insertion: .scale(scale: 0.95).combined(with: .opacity),
-                            removal: .opacity
-                        ))
-                }
-
-                Spacer(minLength: 100)
-            }
-            .padding(.top, 24)
-            .safeAreaInset(edge: .bottom) {
-                continueButton { vm.nextStep() }
-                    .opacity(vm.canProceed ? 1 : 0.4)
-                    .disabled(!vm.canProceed)
-            }
-        }
-        .scrollIndicators(.hidden)
-    }
-
     // MARK: - Plan
 
     private var planScreen: some View {
@@ -772,7 +673,7 @@ struct OnboardingView: View {
         return ScrollView {
             VStack(spacing: 24) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Step 4 of 6")
+                    Text("Step 4 of 5")
                         .font(.system(size: 12, weight: .medium, design: .serif))
                         .foregroundStyle(Theme.goldDark)
                         .padding(.horizontal, 24)
@@ -889,251 +790,12 @@ struct OnboardingView: View {
             .safeAreaInset(edge: .bottom) {
                 continueButton(title: "Sign Your Commitment") {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-                        vm.currentStep = 8
+                        vm.currentStep = 5
                     }
                 }
             }
         }
         .scrollIndicators(.hidden)
-    }
-
-    // MARK: - Testimonials
-
-    private var testimonialScreen: some View {
-        ScrollView {
-            VStack(spacing: 28) {
-                VStack(spacing: 12) {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [Theme.goldLight.opacity(0.25), Theme.goldAccent.opacity(0.05)],
-                                    center: .center,
-                                    startRadius: 10,
-                                    endRadius: 60
-                                )
-                            )
-                            .frame(width: 100, height: 100)
-
-                        Image(systemName: "heart.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [Theme.goldLight, Theme.goldDark],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                            .symbolEffect(.breathe)
-                    }
-
-                    Text("Lives Transformed")
-                        .font(.system(size: 28, weight: .bold, design: .serif))
-                        .foregroundStyle(Theme.textDark)
-
-                    Text("See how Amave has touched\nthousands of hearts.")
-                        .font(.system(.subheadline, design: .serif))
-                        .foregroundStyle(Theme.textMedium)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(3)
-                }
-                .padding(.top, 20)
-
-                impactStatsRow
-
-                VStack(spacing: 14) {
-                    testimonialCard(
-                        initials: "S.M.",
-                        name: "Sarah, 28",
-                        text: "I was lost and anxious every day. Amave gave me a rhythm of prayer that completely changed my mornings. I feel peace for the first time in years.",
-                        color: Color(red: 0.55, green: 0.75, blue: 0.65)
-                    )
-
-                    testimonialCard(
-                        initials: "J.R.",
-                        name: "James, 42",
-                        text: "I hadn't opened a Bible in 15 years. The guided scripture readings made it feel approachable again. Now I read every single day.",
-                        color: Color(red: 0.45, green: 0.62, blue: 0.78)
-                    )
-
-                    testimonialCard(
-                        initials: "M.L.",
-                        name: "Maria, 35",
-                        text: "The community prayer wall showed me I'm not alone. Strangers praying for my family — it moved me to tears.",
-                        color: Color(red: 0.65, green: 0.60, blue: 0.80)
-                    )
-                }
-                .padding(.horizontal, 24)
-
-                VStack(spacing: 16) {
-                    Text("How does this make you feel?")
-                        .font(.system(.body, design: .serif))
-                        .fontWeight(.medium)
-                        .foregroundStyle(Theme.textDark)
-
-                    HStack(spacing: 16) {
-                        ForEach(reactionOptions, id: \.id) { option in
-                            Button {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                    vm.selectedTestimonialReaction = option.id
-                                }
-                            } label: {
-                                VStack(spacing: 8) {
-                                    MinimalistFaceView(
-                                        expression: option.expression,
-                                        isSelected: vm.selectedTestimonialReaction == option.id
-                                    )
-                                    .frame(width: 40, height: 40)
-                                    .scaleEffect(vm.selectedTestimonialReaction == option.id ? 1.15 : 1.0)
-
-                                    Text(option.label)
-                                        .font(.system(size: 10, weight: .medium, design: .serif))
-                                        .foregroundStyle(vm.selectedTestimonialReaction == option.id ? Theme.textDark : Theme.textLight)
-                                }
-                                .frame(width: 64)
-                                .padding(.vertical, 12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(vm.selectedTestimonialReaction == option.id ? Theme.goldAccent.opacity(0.12) : Color.clear)
-                                        .strokeBorder(vm.selectedTestimonialReaction == option.id ? Theme.goldAccent.opacity(0.35) : Color.clear, lineWidth: 1.5)
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-
-                    if let reaction = vm.selectedTestimonialReaction {
-                        Text(reactionResponse(for: reaction))
-                            .font(.system(.subheadline, design: .serif))
-                            .italic()
-                            .foregroundStyle(Theme.textMedium)
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(3)
-                            .padding(.horizontal, 24)
-                            .transition(.asymmetric(
-                                insertion: .scale(scale: 0.95).combined(with: .opacity),
-                                removal: .opacity
-                            ))
-                    }
-                }
-                .padding(.top, 8)
-
-                Spacer(minLength: 100)
-            }
-            .padding(.top, 24)
-            .safeAreaInset(edge: .bottom) {
-                continueButton { vm.nextStep() }
-                    .opacity(vm.canProceed ? 1 : 0.4)
-                    .disabled(!vm.canProceed)
-            }
-        }
-        .scrollIndicators(.hidden)
-    }
-
-    private var impactStatsRow: some View {
-        HStack(spacing: 0) {
-            impactStat(value: "47K+", label: "Lives\nTouched", icon: "person.3.fill")
-            impactDivider
-            impactStat(value: "92%", label: "Feel More\nPeaceful", icon: "leaf.fill")
-            impactDivider
-            impactStat(value: "3.2M", label: "Prayers\nShared", icon: "hands.sparkles")
-        }
-        .padding(.vertical, 20)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Theme.sandLight.opacity(0.7))
-                .strokeBorder(Theme.goldAccent.opacity(0.15), lineWidth: 1)
-        )
-        .padding(.horizontal, 24)
-    }
-
-    private var impactDivider: some View {
-        Rectangle()
-            .fill(Theme.sandDark.opacity(0.15))
-            .frame(width: 1, height: 50)
-    }
-
-    private func impactStat(value: String, label: String, icon: String) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 16))
-                .foregroundStyle(Theme.goldDark)
-
-            Text(value)
-                .font(.system(size: 22, weight: .bold, design: .serif))
-                .foregroundStyle(Theme.textDark)
-
-            Text(label)
-                .font(.system(size: 10, weight: .medium, design: .serif))
-                .foregroundStyle(Theme.textLight)
-                .multilineTextAlignment(.center)
-                .lineSpacing(2)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func testimonialCard(initials: String, name: String, text: String, color: Color) -> some View {
-        HStack(alignment: .top, spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(color.opacity(0.2))
-                    .frame(width: 44, height: 44)
-
-                Text(initials)
-                    .font(.system(size: 14, weight: .bold, design: .serif))
-                    .foregroundStyle(color)
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(name)
-                    .font(.system(.subheadline, design: .serif))
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Theme.textDark)
-
-                Text("\"\(text)\"")
-                    .font(.system(size: 14, design: .serif))
-                    .italic()
-                    .foregroundStyle(Theme.textMedium)
-                    .lineSpacing(3)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.4))
-                .strokeBorder(Theme.sandDark.opacity(0.1), lineWidth: 1)
-        )
-    }
-
-    private struct ReactionOption {
-        let id: String
-        let label: String
-        let expression: MinimalistFaceView.Expression
-    }
-
-    private var reactionOptions: [ReactionOption] {
-        [
-            ReactionOption(id: "hopeful", label: "Hopeful", expression: .hopeful),
-            ReactionOption(id: "moved", label: "Moved", expression: .moved),
-            ReactionOption(id: "inspired", label: "Inspired", expression: .inspired),
-            ReactionOption(id: "grateful", label: "Grateful", expression: .grateful)
-        ]
-    }
-
-    private func reactionResponse(for id: String) -> String {
-        switch id {
-        case "hopeful":
-            return "That hope you feel? It's just the beginning. Your journey is about to grow even deeper."
-        case "moved":
-            return "Tears of compassion are a gift. Your tender heart is exactly what this community needs."
-        case "inspired":
-            return "That inspiration is God speaking to you. You're ready for something beautiful."
-        case "grateful":
-            return "Gratitude opens every door. You're already walking in the right spirit."
-        default:
-            return "Your heart is in the right place. Let's build your path together."
-        }
     }
 
     // MARK: - Signature
@@ -1289,35 +951,6 @@ struct OnboardingView: View {
                 .fill(isSelected ? Theme.sandLight : Theme.sandLight.opacity(0.4))
                 .strokeBorder(isSelected ? Theme.goldAccent.opacity(0.3) : Theme.sandDark.opacity(0.1), lineWidth: 1)
         )
-    }
-
-    private func goalCard(_ goal: SpiritualGoal) -> some View {
-        let isSelected = vm.selectedGoals.contains(goal)
-
-        return VStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(isSelected ? goal.color.opacity(0.2) : Theme.sandLight.opacity(0.8))
-                    .frame(width: 52, height: 52)
-
-                Image(systemName: goal.icon)
-                    .font(.system(size: 22))
-                    .foregroundStyle(isSelected ? goal.color : Theme.textMedium)
-            }
-
-            Text(goal.rawValue)
-                .font(.system(.subheadline, design: .serif))
-                .fontWeight(.medium)
-                .foregroundStyle(isSelected ? Theme.textDark : Theme.textMedium)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(isSelected ? goal.color.opacity(0.08) : Theme.sandLight.opacity(0.4))
-                .strokeBorder(isSelected ? goal.color.opacity(0.4) : Theme.sandDark.opacity(0.1), lineWidth: 1.5)
-        )
-        .scaleEffect(isSelected ? 1.02 : 1.0)
     }
 
     private func insightCard(_ text: String) -> some View {

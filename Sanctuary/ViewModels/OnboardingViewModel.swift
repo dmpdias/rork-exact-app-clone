@@ -25,7 +25,7 @@ class OnboardingViewModel {
     var ratingStars: Int = 0
     var countrySearchText: String = ""
 
-    let totalSteps: Int = 9
+    let totalSteps: Int = 6
     var showCountryPicker: Bool = false
 
     var progress: Double {
@@ -47,15 +47,12 @@ class OnboardingViewModel {
         case 1: return !userName.trimmingCharacters(in: .whitespaces).isEmpty && selectedAge != nil && selectedGender != nil && selectedCountry != nil
         case 2: return selectedSpiritualStyle != nil
         case 3: return selectedPrayerFrequency != nil && selectedScriptureFrequency != nil
-        case 4: return !selectedGoals.isEmpty
-        case 5: return selectedChallenge != nil
-        case 6: return selectedTestimonialReaction != nil
         default: return true
         }
     }
 
     func nextStep() {
-        if currentStep >= 1 && currentStep <= 6 && !showInsight {
+        if currentStep >= 1 && currentStep <= 3 && !showInsight {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 showInsight = true
             }
@@ -114,7 +111,6 @@ class OnboardingViewModel {
             return selectedCountry?.communityInsight(age: selectedAge, gender: selectedGender)
         case 2: return selectedSpiritualStyle != nil ? "All paths lead to Christ. You're welcome here." : nil
         case 3: return faithPracticeInsight
-        case 5: return selectedChallenge?.insight(for: selectedGoals)
         default: return nil
         }
     }
