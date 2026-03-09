@@ -1,4 +1,4 @@
-# Sanctuary — A Beautiful Faith & Devotion App
+# Amave — A Beautiful Faith & Devotion App
 
 
 ## Features
@@ -9,7 +9,7 @@
 - **Devotion score** — A circular arc of glowing dots surrounding a large score number (73), with an encouraging message and a "See what builds your score" button
 - **Daily scripture** — A beautifully styled scripture card with the verse text in italic serif, reference (e.g. JOHN 14:27), version label, and bookmark/share icons
 - **Activity log** — A list of today's spiritual activities (Morning Prayer, Scripture Reading, Daily Reflection, Week Streak) each with category labels, point values, and colored icons
-- **Five-tab navigation** — Sanctuary (home), Counselor, Community, Journey, and Profile tabs
+- **Five-tab navigation** — Amave (home), Counselor, Community, Journey, and Profile tabs
 - **Bible progress indicator** — A small book icon in the top-right corner showing reading progress (78%)
 
 ## Design
@@ -26,10 +26,10 @@
 
 ## Screens
 
-- **Onboarding (10 steps + post-screens)** — Welcome screen with branding, name & age input, prayer frequency question with personalized insight, scripture reading habits with insight, spiritual goals multi-select (up to 3), biggest challenge with insight, testimonials screen with impact stats and emoji reaction picker, personalized plan based on all answers, ink signature commitment using PencilKit, congratulations overlay with animated seal, and App Store rating screen
-- **Guided Tutorial** — 6-step overlay tutorial on first Sanctuary landing, walking users through each tab with animated icons and tab highlight indicators
+- **Onboarding (11 steps + post-screens)** — Welcome screen with Amave branding, conversational getting-to-know-you screen (dark themed, counselor-style chat asking name, gender, age, country with inline feedback), world map screen showing user's country with prayer stats and personalized message, prayer frequency question with personalized insight, scripture reading habits with insight, spiritual goals multi-select (up to 3), biggest challenge with insight, testimonials screen with impact stats and emoji reaction picker, personalized plan based on all answers, ink signature commitment using PencilKit, congratulations overlay with animated seal, and App Store rating screen
+- **Guided Tutorial** — 6-step overlay tutorial on first Amave landing, walking users through each tab with animated icons and tab highlight indicators
 - **Login** — Clean sign-in page with email/password fields, branding, forgot password, and create account link back to onboarding
-- **Sanctuary (Home)** — The main scrollable screen containing all sections: greeting, spiritual moment card, weekly streak, devotion score with circular arc, scripture card, and activity log
+- **Amave (Home)** — The main scrollable screen containing all sections: greeting, spiritual moment card, weekly streak, devotion score with circular arc, scripture card, and activity log
 - **Counselor** — Placeholder tab
 - **Community** — Placeholder tab
 - **Journey** — Placeholder tab

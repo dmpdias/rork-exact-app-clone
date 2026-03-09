@@ -16,13 +16,13 @@ struct GuidedTutorialOverlay: View {
     private let steps: [TutorialStep] = [
         TutorialStep(
             icon: "hand.wave.fill",
-            title: "Welcome to Your Sanctuary",
+            title: "Welcome to Amave",
             description: "This is your sacred home — a personalized space where prayer, scripture, and growth come together every day.",
             highlightTab: nil
         ),
         TutorialStep(
             icon: "house.fill",
-            title: "Your Daily Sanctuary",
+            title: "Your Daily Home",
             description: "Start each day here. Your spiritual moment, weekly streak, devotion score, and daily scripture all live on this screen.",
             highlightTab: 0
         ),

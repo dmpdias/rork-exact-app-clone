@@ -13,20 +13,21 @@ struct OnboardingView: View {
             backgroundLayer
 
             VStack(spacing: 0) {
-                if vm.currentStep > 0 && vm.currentStep <= vm.totalSteps && !vm.showCongrats && !vm.showRating {
+                if vm.currentStep > 0 && vm.currentStep <= vm.totalSteps && !vm.showCongrats && !vm.showRating && vm.currentStep != 1 && vm.currentStep != 2 {
                     topBar
                 }
 
                 TabView(selection: $vm.currentStep) {
                     welcomeScreen.tag(0)
-                    nameAgeScreen.tag(1)
-                    prayerScreen.tag(2)
-                    scriptureScreen.tag(3)
-                    goalsScreen.tag(4)
-                    challengeScreen.tag(5)
-                    testimonialScreen.tag(6)
-                    planScreen.tag(7)
-                    signatureScreen.tag(8)
+                    conversationScreen.tag(1)
+                    worldMapScreen.tag(2)
+                    prayerScreen.tag(3)
+                    scriptureScreen.tag(4)
+                    goalsScreen.tag(5)
+                    challengeScreen.tag(6)
+                    testimonialScreen.tag(7)
+                    planScreen.tag(8)
+                    signatureScreen.tag(9)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.spring(response: 0.5, dampingFraction: 0.85), value: vm.currentStep)
@@ -50,29 +51,38 @@ struct OnboardingView: View {
 
     private var backgroundLayer: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.96, green: 0.93, blue: 0.88),
-                    Color(red: 0.92, green: 0.88, blue: 0.82),
-                    Color(red: 0.94, green: 0.90, blue: 0.84)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            if vm.currentStep == 1 {
+                Color(red: 0.10, green: 0.09, blue: 0.08)
+                    .ignoresSafeArea()
+            } else if vm.currentStep == 2 {
+                Color(red: 0.08, green: 0.07, blue: 0.06)
+                    .ignoresSafeArea()
+            } else {
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.96, green: 0.93, blue: 0.88),
+                        Color(red: 0.92, green: 0.88, blue: 0.82),
+                        Color(red: 0.94, green: 0.90, blue: 0.84)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
-            Canvas { context, size in
-                for seed in particleSeeds {
-                    let point = CGPoint(x: seed.x * size.width, y: seed.y * size.height)
-                    context.opacity = seed.opacity
-                    context.fill(
-                        Circle().path(in: CGRect(x: point.x, y: point.y, width: seed.size, height: seed.size)),
-                        with: .color(Theme.particleDot)
-                    )
+                Canvas { context, size in
+                    for seed in particleSeeds {
+                        let point = CGPoint(x: seed.x * size.width, y: seed.y * size.height)
+                        context.opacity = seed.opacity
+                        context.fill(
+                            Circle().path(in: CGRect(x: point.x, y: point.y, width: seed.size, height: seed.size)),
+                            with: .color(Theme.particleDot)
+                        )
+                    }
                 }
+                .ignoresSafeArea()
             }
-            .ignoresSafeArea()
         }
+        .animation(.easeInOut(duration: 0.6), value: vm.currentStep)
     }
 
     private var topBar: some View {
@@ -89,7 +99,7 @@ struct OnboardingView: View {
             Spacer()
 
             HStack(spacing: 6) {
-                ForEach(1...vm.totalSteps, id: \.self) { step in
+                ForEach(3...vm.totalSteps, id: \.self) { step in
                     Capsule()
                         .fill(step <= vm.currentStep ? Theme.goldAccent : Theme.sandDark.opacity(0.2))
                         .frame(width: step == vm.currentStep ? 24 : 8, height: 4)
@@ -137,7 +147,7 @@ struct OnboardingView: View {
                 }
 
                 VStack(spacing: 12) {
-                    Text("Sanctuary")
+                    Text("Amave")
                         .font(.system(size: 42, weight: .bold, design: .serif))
                         .foregroundStyle(Theme.textDark)
 
@@ -164,6 +174,7 @@ struct OnboardingView: View {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
                         vm.currentStep = 1
                     }
+                    vm.startConversation()
                 } label: {
                     HStack(spacing: 10) {
                         Text("Begin Your Journey")
@@ -202,82 +213,560 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Name & Age
+    // MARK: - Conversation Screen (Dark Themed)
 
-    private var nameAgeScreen: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 32) {
-                questionHeader(
-                    label: "GETTING TO KNOW YOU",
-                    title: "What should we\ncall you?",
-                    subtitle: "Your name helps us personalize your experience."
-                )
+    private let darkText = Color(red: 0.92, green: 0.88, blue: 0.82)
+    private let darkTextMuted = Color(red: 0.60, green: 0.56, blue: 0.50)
+    private let darkGold = Color(red: 0.82, green: 0.68, blue: 0.40)
+    private let darkCardBg = Color(red: 0.16, green: 0.15, blue: 0.13)
+    private let darkInputBg = Color(red: 0.14, green: 0.13, blue: 0.11)
+    private let darkBubbleBg = Color(red: 0.18, green: 0.17, blue: 0.15)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("YOUR NAME")
-                        .font(.system(size: 11, weight: .semibold))
-                        .tracking(1.5)
-                        .foregroundStyle(Theme.textLight)
+    private var conversationScreen: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    Spacer().frame(height: 60)
 
-                    TextField("", text: $vm.userName, prompt: Text("Enter your first name").foregroundStyle(Theme.textLight.opacity(0.6)))
-                        .font(.system(size: 20, design: .serif))
-                        .foregroundStyle(Theme.textDark)
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 20)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Theme.sandLight.opacity(0.6))
-                                .strokeBorder(Theme.sandDark.opacity(0.2), lineWidth: 1)
-                        )
-                }
-                .padding(.horizontal, 24)
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("YOUR AGE")
-                        .font(.system(size: 11, weight: .semibold))
-                        .tracking(1.5)
-                        .foregroundStyle(Theme.textLight)
-                        .padding(.horizontal, 24)
-
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                        ForEach(AgeRange.allCases) { age in
-                            Button {
-                                withAnimation(.spring(response: 0.3)) {
-                                    vm.selectedAge = age
-                                }
-                            } label: {
-                                Text(age.rawValue)
-                                    .font(.system(.subheadline, design: .serif))
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(vm.selectedAge == age ? Theme.cream : Theme.textDark)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 14)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(vm.selectedAge == age ? Theme.cardBrown : Theme.sandLight.opacity(0.6))
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .strokeBorder(vm.selectedAge == age ? Theme.goldAccent.opacity(0.5) : Theme.sandDark.opacity(0.15), lineWidth: 1)
-                                    )
+                    HStack {
+                        Spacer()
+                        VStack(spacing: 8) {
+                            ZStack {
+                                Circle()
+                                    .fill(darkGold.opacity(0.15))
+                                    .frame(width: 56, height: 56)
+                                Image(systemName: "flame.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundStyle(darkGold)
                             }
-                            .buttonStyle(.plain)
+                            Text("AMAVE")
+                                .font(.system(size: 10, weight: .bold))
+                                .tracking(3)
+                                .foregroundStyle(darkTextMuted)
                         }
+                        Spacer()
                     }
-                    .padding(.horizontal, 24)
-                }
+                    .padding(.bottom, 32)
 
-                Spacer(minLength: 100)
+                    if vm.conversationPhase.rawValue >= ConversationPhase.askName.rawValue {
+                        counselorBubble("Welcome to Amave. I'd love to get to know you a little before we begin.")
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.conversationPhase.rawValue >= ConversationPhase.askName.rawValue {
+                        counselorBubble("What's your name?")
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.showNameField && !vm.nameSubmitted {
+                        nameInputField
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                            .id("nameInput")
+                    }
+
+                    if vm.nameSubmitted {
+                        userBubble(vm.userName)
+                            .transition(.asymmetric(insertion: .scale(scale: 0.95).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.conversationPhase.rawValue >= ConversationPhase.nameResponse.rawValue {
+                        counselorBubble("Beautiful name, \(vm.userName). It's a joy to meet you.")
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.conversationPhase.rawValue >= ConversationPhase.askGender.rawValue {
+                        counselorBubble("How would you like to be addressed?")
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.showGenderPicker && !vm.genderSubmitted {
+                        genderPickerView
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                            .id("genderPicker")
+                    }
+
+                    if vm.genderSubmitted, let gender = vm.selectedGender {
+                        userBubble(gender.rawValue)
+                            .transition(.asymmetric(insertion: .scale(scale: 0.95).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.conversationPhase.rawValue >= ConversationPhase.genderResponse.rawValue {
+                        counselorBubble("Wonderful. Thank you for sharing that.")
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.conversationPhase.rawValue >= ConversationPhase.askAge.rawValue {
+                        counselorBubble("And which age group do you belong to?")
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.showAgePicker && !vm.ageSubmitted {
+                        agePickerView
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                            .id("agePicker")
+                    }
+
+                    if vm.ageSubmitted, let age = vm.selectedAge {
+                        userBubble(age.rawValue)
+                            .transition(.asymmetric(insertion: .scale(scale: 0.95).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.conversationPhase.rawValue >= ConversationPhase.ageResponse.rawValue {
+                        let ageMsg = ageResponseMessage
+                        counselorBubble(ageMsg)
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.conversationPhase.rawValue >= ConversationPhase.askCountry.rawValue {
+                        counselorBubble("Where in the world are you joining us from?")
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.showCountryPicker && !vm.countrySubmitted {
+                        countryPickerView
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                            .id("countryPicker")
+                    }
+
+                    if vm.countrySubmitted, let country = vm.selectedCountry {
+                        userBubble("\(country.flag) \(country.name)")
+                            .transition(.asymmetric(insertion: .scale(scale: 0.95).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.conversationPhase.rawValue >= ConversationPhase.countryResponse.rawValue, let country = vm.selectedCountry {
+                        counselorBubble("How wonderful — \(country.name) holds a special place. We have something to show you.")
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                    }
+
+                    if vm.conversationPhase == .farewell {
+                        farewellContinueButton
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                            .id("farewell")
+                    }
+
+                    if vm.isTyping {
+                        typingIndicator
+                            .transition(.opacity)
+                            .id("typing")
+                    }
+
+                    Spacer().frame(height: 40)
+                }
+                .padding(.horizontal, 20)
             }
-            .padding(.top, 24)
-            .safeAreaInset(edge: .bottom) {
-                continueButton { vm.nextStep() }
-                    .opacity(vm.canProceed ? 1 : 0.4)
-                    .disabled(!vm.canProceed)
+            .scrollDismissesKeyboard(.interactively)
+            .scrollIndicators(.hidden)
+            .onChange(of: vm.conversationPhase) { _, newPhase in
+                withAnimation {
+                    switch newPhase {
+                    case .askName: proxy.scrollTo("nameInput", anchor: .bottom)
+                    case .askGender: proxy.scrollTo("genderPicker", anchor: .bottom)
+                    case .askAge: proxy.scrollTo("agePicker", anchor: .bottom)
+                    case .askCountry: proxy.scrollTo("countryPicker", anchor: .bottom)
+                    case .farewell: proxy.scrollTo("farewell", anchor: .bottom)
+                    default: break
+                    }
+                }
+            }
+            .onChange(of: vm.isTyping) { _, isTyping in
+                if isTyping {
+                    withAnimation {
+                        proxy.scrollTo("typing", anchor: .bottom)
+                    }
+                }
             }
         }
-        .scrollDismissesKeyboard(.interactively)
-        .scrollIndicators(.hidden)
+    }
+
+    private func counselorBubble(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Circle()
+                .fill(darkGold.opacity(0.2))
+                .frame(width: 28, height: 28)
+                .overlay(
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(darkGold)
+                )
+
+            Text(text)
+                .font(.system(size: 16, design: .serif))
+                .foregroundStyle(darkText)
+                .lineSpacing(5)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(darkBubbleBg)
+                )
+                .frame(maxWidth: 280, alignment: .leading)
+        }
+        .padding(.bottom, 12)
+    }
+
+    private func userBubble(_ text: String) -> some View {
+        HStack {
+            Spacer()
+            Text(text)
+                .font(.system(size: 16, weight: .medium, design: .serif))
+                .foregroundStyle(Color(red: 0.10, green: 0.09, blue: 0.08))
+                .padding(.horizontal, 18)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(darkGold)
+                )
+        }
+        .padding(.bottom, 12)
+    }
+
+    private var nameInputField: some View {
+        HStack(spacing: 12) {
+            TextField("", text: $vm.userName, prompt: Text("Type your name...").foregroundStyle(darkTextMuted.opacity(0.6)))
+                .font(.system(size: 17, design: .serif))
+                .foregroundStyle(darkText)
+                .tint(darkGold)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.words)
+                .onSubmit {
+                    vm.submitName()
+                }
+
+            Button {
+                vm.submitName()
+            } label: {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.system(size: 32))
+                    .foregroundStyle(vm.userName.trimmingCharacters(in: .whitespaces).isEmpty ? darkTextMuted.opacity(0.3) : darkGold)
+            }
+            .disabled(vm.userName.trimmingCharacters(in: .whitespaces).isEmpty)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(darkInputBg)
+                .strokeBorder(darkGold.opacity(0.15), lineWidth: 1)
+        )
+        .padding(.leading, 38)
+        .padding(.bottom, 12)
+    }
+
+    private var genderPickerView: some View {
+        HStack(spacing: 10) {
+            ForEach(Gender.allCases) { gender in
+                Button {
+                    vm.submitGender(gender)
+                } label: {
+                    VStack(spacing: 8) {
+                        Image(systemName: gender.icon)
+                            .font(.system(size: 20))
+                            .foregroundStyle(darkGold)
+
+                        Text(gender.rawValue)
+                            .font(.system(size: 12, weight: .medium, design: .serif))
+                            .foregroundStyle(darkText)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(darkCardBg)
+                            .strokeBorder(darkGold.opacity(0.15), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.leading, 38)
+        .padding(.bottom, 12)
+    }
+
+    private var agePickerView: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+            ForEach(AgeRange.allCases) { age in
+                Button {
+                    vm.submitAge(age)
+                } label: {
+                    Text(age.rawValue)
+                        .font(.system(size: 14, weight: .medium, design: .serif))
+                        .foregroundStyle(darkText)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(darkCardBg)
+                                .strokeBorder(darkGold.opacity(0.15), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.leading, 38)
+        .padding(.bottom, 12)
+    }
+
+    private var countryPickerView: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 10) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 14))
+                    .foregroundStyle(darkTextMuted)
+
+                TextField("", text: $vm.countrySearch, prompt: Text("Search country...").foregroundStyle(darkTextMuted.opacity(0.6)))
+                    .font(.system(size: 15, design: .serif))
+                    .foregroundStyle(darkText)
+                    .tint(darkGold)
+                    .autocorrectionDisabled()
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(darkInputBg)
+                    .strokeBorder(darkGold.opacity(0.1), lineWidth: 1)
+            )
+
+            ScrollView {
+                LazyVStack(spacing: 4) {
+                    ForEach(vm.filteredCountries) { country in
+                        Button {
+                            vm.submitCountry(country)
+                        } label: {
+                            HStack(spacing: 12) {
+                                Text(country.flag)
+                                    .font(.system(size: 22))
+
+                                Text(country.name)
+                                    .font(.system(size: 15, design: .serif))
+                                    .foregroundStyle(darkText)
+
+                                Spacer()
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(darkCardBg)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .frame(maxHeight: 200)
+        }
+        .padding(.leading, 38)
+        .padding(.bottom, 12)
+    }
+
+    private var typingIndicator: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Circle()
+                .fill(darkGold.opacity(0.2))
+                .frame(width: 28, height: 28)
+                .overlay(
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(darkGold)
+                )
+
+            HStack(spacing: 6) {
+                ForEach(0..<3, id: \.self) { i in
+                    Circle()
+                        .fill(darkTextMuted)
+                        .frame(width: 7, height: 7)
+                        .opacity(0.6)
+                        .animation(
+                            .easeInOut(duration: 0.5)
+                            .repeatForever()
+                            .delay(Double(i) * 0.15),
+                            value: vm.isTyping
+                        )
+                        .scaleEffect(vm.isTyping ? 1.2 : 0.8)
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(darkBubbleBg)
+            )
+        }
+        .padding(.bottom, 12)
+    }
+
+    private var farewellContinueButton: some View {
+        HStack {
+            Spacer()
+            Button {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                    vm.currentStep = 2
+                }
+                vm.startMapAnimation()
+            } label: {
+                HStack(spacing: 10) {
+                    Text("See your place in the world")
+                        .font(.system(size: 15, weight: .semibold, design: .serif))
+
+                    Image(systemName: "globe.americas.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundStyle(Color(red: 0.10, green: 0.09, blue: 0.08))
+                .padding(.horizontal, 24)
+                .padding(.vertical, 16)
+                .background(
+                    Capsule()
+                        .fill(darkGold)
+                )
+            }
+            Spacer()
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 16)
+    }
+
+    private var ageResponseMessage: String {
+        guard let age = vm.selectedAge else { return "Thank you for sharing." }
+        switch age {
+        case .teen:
+            return "Starting this young is incredible. Teenagers who build a prayer habit now carry it for life — you're ahead of 90% of your peers."
+        case .youngAdult:
+            return "Your twenties are when faith really takes root. 67% of young adults your age are searching for deeper meaning — you've found it."
+        case .adult:
+            return "This is when spiritual growth accelerates. People your age who commit to daily practice see the most transformation."
+        case .midLife:
+            return "Your life experience gives prayer such richness. This season is when many discover their deepest connection with God."
+        case .mature:
+            return "The wisdom you carry is a gift. People in your season often become the most powerful prayer warriors."
+        case .elder:
+            return "Your lifetime of faith is an inspiration. Every prayer you've ever prayed has been heard — and there's still more to discover."
+        }
+    }
+
+    // MARK: - World Map Screen
+
+    private var worldMapScreen: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: 28) {
+                ZStack {
+                    ForEach(0..<3, id: \.self) { i in
+                        Circle()
+                            .strokeBorder(darkGold.opacity(vm.showMapStats ? 0.1 : 0), lineWidth: 1)
+                            .frame(width: CGFloat(180 + i * 50), height: CGFloat(180 + i * 50))
+                            .animation(.easeOut(duration: 1.5).delay(Double(i) * 0.2), value: vm.showMapStats)
+                    }
+
+                    ZStack {
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [darkGold.opacity(0.15), Color.clear],
+                                    center: .center,
+                                    startRadius: 30,
+                                    endRadius: 90
+                                )
+                            )
+                            .frame(width: 180, height: 180)
+
+                        Image(systemName: "globe.americas.fill")
+                            .font(.system(size: 90))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [darkGold.opacity(0.8), darkGold.opacity(0.4)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .rotation3DEffect(.degrees(vm.mapRotation * 0.3), axis: (x: 0, y: 1, z: 0))
+
+                        if vm.showMapStats {
+                            Circle()
+                                .fill(darkGold)
+                                .frame(width: 12, height: 12)
+                                .shadow(color: darkGold.opacity(0.6), radius: 8)
+                                .transition(.scale.combined(with: .opacity))
+                        }
+                    }
+                }
+
+                if let country = vm.selectedCountry {
+                    VStack(spacing: 8) {
+                        Text(country.flag)
+                            .font(.system(size: 44))
+                            .opacity(vm.showMapStats ? 1 : 0)
+                            .scaleEffect(vm.showMapStats ? 1 : 0.5)
+                            .animation(.spring(response: 0.5).delay(0.2), value: vm.showMapStats)
+
+                        Text(country.name)
+                            .font(.system(size: 28, weight: .bold, design: .serif))
+                            .foregroundStyle(darkText)
+                            .opacity(vm.showMapStats ? 1 : 0)
+                            .offset(y: vm.showMapStats ? 0 : 10)
+                            .animation(.spring(response: 0.5).delay(0.3), value: vm.showMapStats)
+                    }
+
+                    if vm.showMapStats {
+                        VStack(spacing: 16) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "person.3.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(darkGold)
+
+                                Text("\(country.prayerCount.formatted()) souls")
+                                    .font(.system(size: 20, weight: .bold, design: .serif))
+                                    .foregroundStyle(darkGold)
+
+                                Text("praying from here")
+                                    .font(.system(size: 16, design: .serif))
+                                    .foregroundStyle(darkTextMuted)
+                            }
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+
+                            Text("You are special because\n\(country.specialReason).")
+                                .font(.system(size: 16, design: .serif))
+                                .italic()
+                                .foregroundStyle(darkText.opacity(0.85))
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(4)
+                                .padding(.horizontal, 32)
+                                .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
+                        }
+                    }
+                }
+            }
+
+            Spacer()
+
+            if vm.mapAnimationComplete {
+                Button {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                        vm.currentStep = 3
+                    }
+                } label: {
+                    HStack(spacing: 10) {
+                        Text("Continue Your Journey")
+                            .font(.system(.body, design: .serif))
+                            .fontWeight(.semibold)
+
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundStyle(Color(red: 0.10, green: 0.09, blue: 0.08))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(
+                        Capsule()
+                            .fill(darkGold)
+                    )
+                }
+                .padding(.horizontal, 32)
+                .padding(.bottom, 50)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
     }
 
     // MARK: - Prayer
@@ -602,7 +1091,7 @@ struct OnboardingView: View {
             .safeAreaInset(edge: .bottom) {
                 continueButton(title: "Sign Your Commitment") {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-                        vm.currentStep = 8
+                        vm.currentStep = 9
                     }
                 }
             }
@@ -644,7 +1133,7 @@ struct OnboardingView: View {
                         .font(.system(size: 28, weight: .bold, design: .serif))
                         .foregroundStyle(Theme.textDark)
 
-                    Text("See how Sanctuary has touched\nthousands of hearts.")
+                    Text("See how Amave has touched\nthousands of hearts.")
                         .font(.system(.subheadline, design: .serif))
                         .foregroundStyle(Theme.textMedium)
                         .multilineTextAlignment(.center)
@@ -658,7 +1147,7 @@ struct OnboardingView: View {
                     testimonialCard(
                         initials: "S.M.",
                         name: "Sarah, 28",
-                        text: "I was lost and anxious every day. Sanctuary gave me a rhythm of prayer that completely changed my mornings. I feel peace for the first time in years.",
+                        text: "I was lost and anxious every day. Amave gave me a rhythm of prayer that completely changed my mornings. I feel peace for the first time in years.",
                         color: Color(red: 0.55, green: 0.75, blue: 0.65)
                     )
 
@@ -1139,7 +1628,7 @@ struct OnboardingView: View {
                     }
 
                     VStack(spacing: 6) {
-                        Text("Your sanctuary is prepared.")
+                        Text("Your sacred space is prepared.")
                             .font(.system(.body, design: .serif))
                             .foregroundStyle(Theme.textMedium)
 
@@ -1303,7 +1792,7 @@ struct OnboardingView: View {
                         onComplete()
                     } label: {
                         HStack(spacing: 10) {
-                            Text(vm.ratingStars > 0 ? "Enter Sanctuary" : "Enter Sanctuary")
+                            Text("Enter Amave")
                                 .font(.system(.body, design: .serif))
                                 .fontWeight(.semibold)
 
@@ -1350,7 +1839,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Reusable Components
+    // MARK: - Reusable Button
 
     private func continueButton(title: String = "Continue", action: @escaping () -> Void) -> some View {
         Button(action: action) {

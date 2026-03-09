@@ -99,7 +99,7 @@ struct LoginView: View {
                     .font(.system(size: 16, design: .serif))
                     .foregroundStyle(Theme.textMedium)
 
-                Text("Sanctuary")
+                Text("Amave")
                     .font(.system(size: 36, weight: .bold, design: .serif))
                     .foregroundStyle(Theme.textDark)
             }

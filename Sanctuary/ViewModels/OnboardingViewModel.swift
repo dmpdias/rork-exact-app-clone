@@ -1,11 +1,27 @@
 import SwiftUI
 
+nonisolated enum ConversationPhase: Int, CaseIterable, Sendable {
+    case greeting = 0
+    case askName = 1
+    case nameResponse = 2
+    case askGender = 3
+    case genderResponse = 4
+    case askAge = 5
+    case ageResponse = 6
+    case askCountry = 7
+    case countryResponse = 8
+    case farewell = 9
+}
+
 @Observable
 @MainActor
 class OnboardingViewModel {
     var currentStep: Int = 0
     var userName: String = ""
     var selectedAge: AgeRange?
+    var selectedGender: Gender?
+    var selectedCountry: CountryInfo?
+    var countrySearch: String = ""
     var selectedPrayerFrequency: PrayerFrequency?
     var selectedScriptureFrequency: ScriptureFrequency?
     var selectedGoals: [SpiritualGoal] = []
@@ -19,27 +35,171 @@ class OnboardingViewModel {
     var congratsAnimated: Bool = false
     var ratingStars: Int = 0
 
-    let totalSteps: Int = 8
+    var conversationPhase: ConversationPhase = .greeting
+    var isTyping: Bool = false
+    var showNameField: Bool = false
+    var showGenderPicker: Bool = false
+    var showAgePicker: Bool = false
+    var showCountryPicker: Bool = false
+    var nameSubmitted: Bool = false
+    var genderSubmitted: Bool = false
+    var ageSubmitted: Bool = false
+    var countrySubmitted: Bool = false
+
+    var mapRotation: Double = 0
+    var mapTargetLatitude: Double = 20
+    var mapTargetLongitude: Double = 0
+    var showMapStats: Bool = false
+    var mapAnimationComplete: Bool = false
+
+    let totalSteps: Int = 9
 
     var progress: Double {
         Double(currentStep) / Double(totalSteps + 1)
     }
 
+    var filteredCountries: [CountryInfo] {
+        if countrySearch.isEmpty {
+            return CountryInfo.countries
+        }
+        return CountryInfo.countries.filter { $0.name.localizedStandardContains(countrySearch) }
+    }
+
     var canProceed: Bool {
         switch currentStep {
         case 0: return true
-        case 1: return !userName.trimmingCharacters(in: .whitespaces).isEmpty && selectedAge != nil
-        case 2: return selectedPrayerFrequency != nil
-        case 3: return selectedScriptureFrequency != nil
-        case 4: return !selectedGoals.isEmpty
-        case 5: return selectedChallenge != nil
-        case 6: return selectedTestimonialReaction != nil
+        case 1: return countrySubmitted
+        case 2: return mapAnimationComplete
+        case 3: return selectedPrayerFrequency != nil
+        case 4: return selectedScriptureFrequency != nil
+        case 5: return !selectedGoals.isEmpty
+        case 6: return selectedChallenge != nil
+        case 7: return selectedTestimonialReaction != nil
         default: return true
         }
     }
 
+    func startConversation() {
+        conversationPhase = .greeting
+        isTyping = true
+        Task {
+            try? await Task.sleep(for: .seconds(1.0))
+            withAnimation(.spring(response: 0.4)) {
+                isTyping = false
+                conversationPhase = .askName
+            }
+            try? await Task.sleep(for: .seconds(0.6))
+            withAnimation(.spring(response: 0.4)) {
+                showNameField = true
+            }
+        }
+    }
+
+    func submitName() {
+        guard !userName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        nameSubmitted = true
+        isTyping = true
+        Task {
+            try? await Task.sleep(for: .seconds(0.8))
+            withAnimation(.spring(response: 0.4)) {
+                isTyping = false
+                conversationPhase = .nameResponse
+            }
+            try? await Task.sleep(for: .seconds(1.2))
+            withAnimation(.spring(response: 0.4)) {
+                conversationPhase = .askGender
+            }
+            try? await Task.sleep(for: .seconds(0.5))
+            withAnimation(.spring(response: 0.4)) {
+                showGenderPicker = true
+            }
+        }
+    }
+
+    func submitGender(_ gender: Gender) {
+        selectedGender = gender
+        genderSubmitted = true
+        showGenderPicker = false
+        isTyping = true
+        Task {
+            try? await Task.sleep(for: .seconds(0.8))
+            withAnimation(.spring(response: 0.4)) {
+                isTyping = false
+                conversationPhase = .genderResponse
+            }
+            try? await Task.sleep(for: .seconds(1.0))
+            withAnimation(.spring(response: 0.4)) {
+                conversationPhase = .askAge
+            }
+            try? await Task.sleep(for: .seconds(0.5))
+            withAnimation(.spring(response: 0.4)) {
+                showAgePicker = true
+            }
+        }
+    }
+
+    func submitAge(_ age: AgeRange) {
+        selectedAge = age
+        ageSubmitted = true
+        showAgePicker = false
+        isTyping = true
+        Task {
+            try? await Task.sleep(for: .seconds(0.8))
+            withAnimation(.spring(response: 0.4)) {
+                isTyping = false
+                conversationPhase = .ageResponse
+            }
+            try? await Task.sleep(for: .seconds(1.0))
+            withAnimation(.spring(response: 0.4)) {
+                conversationPhase = .askCountry
+            }
+            try? await Task.sleep(for: .seconds(0.5))
+            withAnimation(.spring(response: 0.4)) {
+                showCountryPicker = true
+            }
+        }
+    }
+
+    func submitCountry(_ country: CountryInfo) {
+        selectedCountry = country
+        countrySubmitted = true
+        showCountryPicker = false
+        isTyping = true
+        Task {
+            try? await Task.sleep(for: .seconds(0.6))
+            withAnimation(.spring(response: 0.4)) {
+                isTyping = false
+                conversationPhase = .countryResponse
+            }
+            try? await Task.sleep(for: .seconds(1.0))
+            withAnimation(.spring(response: 0.4)) {
+                conversationPhase = .farewell
+            }
+        }
+    }
+
+    func startMapAnimation() {
+        guard let country = selectedCountry else { return }
+        mapTargetLatitude = country.latitude
+        mapTargetLongitude = country.longitude
+        Task {
+            try? await Task.sleep(for: .seconds(0.5))
+            withAnimation(.spring(response: 1.5, dampingFraction: 0.8)) {
+                mapRotation = -country.longitude
+            }
+            try? await Task.sleep(for: .seconds(1.8))
+            withAnimation(.spring(response: 0.6)) {
+                showMapStats = true
+            }
+            try? await Task.sleep(for: .seconds(0.5))
+            withAnimation(.spring(response: 0.4)) {
+                mapAnimationComplete = true
+            }
+        }
+    }
+
     func nextStep() {
-        if currentStep >= 2 && currentStep <= 5 && !showInsight {
+        if currentStep >= 3 && currentStep <= 6 && !showInsight {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 showInsight = true
             }
@@ -54,9 +214,10 @@ class OnboardingViewModel {
 
     func triggerCongrats() {
         showCongrats = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        Task {
+            try? await Task.sleep(for: .seconds(0.3))
             withAnimation(.spring(response: 0.8, dampingFraction: 0.6)) {
-                self.congratsAnimated = true
+                congratsAnimated = true
             }
         }
     }
@@ -86,9 +247,9 @@ class OnboardingViewModel {
 
     var currentInsight: String? {
         switch currentStep {
-        case 2: return selectedPrayerFrequency?.insight(for: selectedAge)
-        case 3: return selectedScriptureFrequency?.insight(for: selectedPrayerFrequency)
-        case 5: return selectedChallenge?.insight(for: selectedGoals)
+        case 3: return selectedPrayerFrequency?.insight(for: selectedAge)
+        case 4: return selectedScriptureFrequency?.insight(for: selectedPrayerFrequency)
+        case 6: return selectedChallenge?.insight(for: selectedGoals)
         default: return nil
         }
     }
