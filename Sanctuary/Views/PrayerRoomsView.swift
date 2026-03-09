@@ -214,7 +214,7 @@ struct SanctuaryRoomCard: View {
         Button {
             showInterior = true
         } label: {
-            Text("Enter Sanctuary")
+            Text("Enter Prayer Room")
                 .font(.system(size: 15, weight: .medium, design: .serif))
                 .foregroundStyle(Theme.goldAccent)
                 .padding(.horizontal, 32)

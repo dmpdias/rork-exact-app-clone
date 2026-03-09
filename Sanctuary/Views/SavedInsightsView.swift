@@ -288,7 +288,7 @@ struct SavedInsightsView: View {
     }
 
     private func shareVerse(_ verse: SavedVerse) {
-        let shareText = "\"\(verse.text)\"\n\u{2014} \(verse.reference)\n\nShared from Sanctuary"
+        let shareText = "\"\(verse.text)\"\n\u{2014} \(verse.reference)\n\nShared from Amave"
         let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let root = scene.windows.first?.rootViewController {

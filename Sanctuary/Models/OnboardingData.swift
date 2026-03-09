@@ -11,6 +11,108 @@ nonisolated enum AgeRange: String, CaseIterable, Identifiable, Codable, Sendable
     var id: String { rawValue }
 }
 
+nonisolated enum Gender: String, CaseIterable, Identifiable, Codable, Sendable {
+    case male = "Male"
+    case female = "Female"
+    case nonBinary = "Non-binary"
+    case preferNotToSay = "Prefer not to say"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .male: return "figure.stand"
+        case .female: return "figure.stand.dress"
+        case .nonBinary: return "figure.2"
+        case .preferNotToSay: return "hand.raised.slash"
+        }
+    }
+}
+
+nonisolated enum UserCountry: String, CaseIterable, Identifiable, Codable, Sendable {
+    case unitedStates = "United States"
+    case unitedKingdom = "United Kingdom"
+    case canada = "Canada"
+    case brazil = "Brazil"
+    case mexico = "Mexico"
+    case nigeria = "Nigeria"
+    case southAfrica = "South Africa"
+    case kenya = "Kenya"
+    case philippines = "Philippines"
+    case india = "India"
+    case australia = "Australia"
+    case germany = "Germany"
+    case france = "France"
+    case portugal = "Portugal"
+    case spain = "Spain"
+    case italy = "Italy"
+    case colombia = "Colombia"
+    case argentina = "Argentina"
+    case ghana = "Ghana"
+    case other = "Other"
+
+    var id: String { rawValue }
+
+    var flag: String {
+        switch self {
+        case .unitedStates: return "🇺🇸"
+        case .unitedKingdom: return "🇬🇧"
+        case .canada: return "🇨🇦"
+        case .brazil: return "🇧🇷"
+        case .mexico: return "🇲🇽"
+        case .nigeria: return "🇳🇬"
+        case .southAfrica: return "🇿🇦"
+        case .kenya: return "🇰🇪"
+        case .philippines: return "🇵🇭"
+        case .india: return "🇮🇳"
+        case .australia: return "🇦🇺"
+        case .germany: return "🇩🇪"
+        case .france: return "🇫🇷"
+        case .portugal: return "🇵🇹"
+        case .spain: return "🇪🇸"
+        case .italy: return "🇮🇹"
+        case .colombia: return "🇨🇴"
+        case .argentina: return "🇦🇷"
+        case .ghana: return "🇬🇭"
+        case .other: return "🌍"
+        }
+    }
+
+    func communityInsight(age: AgeRange?, gender: Gender?) -> String {
+        let ageLabel: String
+        switch age {
+        case .teen: ageLabel = "teens"
+        case .youngAdult: ageLabel = "young adults"
+        case .adult: ageLabel = "adults in their late 20s and 30s"
+        case .midLife: ageLabel = "people in their prime years"
+        case .mature: ageLabel = "seasoned believers"
+        case .elder: ageLabel = "wise elders"
+        case nil: ageLabel = "believers"
+        }
+
+        switch self {
+        case .unitedStates:
+            return "The US has one of the largest faith communities on Amave. \(ageLabel.capitalized) like you make up 28% of our American community — and they report feeling 40% more connected to their faith."
+        case .brazil:
+            return "Brazil is our fastest-growing community! \(ageLabel.capitalized) in Brazil pray an average of 2.3 times daily through the app. You're joining an incredibly passionate group."
+        case .nigeria:
+            return "Nigeria has one of the most active prayer communities on Amave. \(ageLabel.capitalized) from Nigeria share 45% more prayers than the global average — truly inspiring devotion."
+        case .philippines:
+            return "The Filipino community on Amave is known for their deep devotion. \(ageLabel.capitalized) from the Philippines complete scripture journeys 60% faster than average."
+        case .unitedKingdom:
+            return "The UK community is growing beautifully. \(ageLabel.capitalized) in Britain are rediscovering faith — your group has grown 35% this year alone."
+        case .india:
+            return "India's diverse faith community brings unique depth to Amave. \(ageLabel.capitalized) from India contribute some of the most heartfelt prayers on our wall."
+        case .southAfrica:
+            return "South Africa's community radiates warmth and fellowship. \(ageLabel.capitalized) from SA are among the most active in community prayer — true prayer warriors."
+        case .kenya:
+            return "Kenya's faithful community on Amave is deeply inspiring. \(ageLabel.capitalized) from Kenya maintain the longest prayer streaks on average — 23 days!"
+        default:
+            return "Your country has a beautiful community of \(ageLabel) on Amave. Together, you'll discover how faith connects people across borders and cultures."
+        }
+    }
+}
+
 nonisolated enum PrayerFrequency: String, CaseIterable, Identifiable, Codable, Sendable {
     case rarely = "Rarely"
     case weekly = "A few times a week"
@@ -62,7 +164,7 @@ nonisolated enum ScriptureFrequency: String, CaseIterable, Identifiable, Codable
     func insight(for prayer: PrayerFrequency?) -> String {
         switch self {
         case .never:
-            return "No worries — Sanctuary will guide you gently into scripture with short, meaningful passages chosen just for you."
+            return "No worries — Amave will guide you gently into scripture with short, meaningful passages chosen just for you."
         case .occasionally:
             return "Even occasional reading plants seeds. People who pair scripture with prayer — like you're doing — see 3x more spiritual growth."
         case .weekly:
@@ -133,11 +235,11 @@ nonisolated enum SpiritualChallenge: String, CaseIterable, Identifiable, Codable
     func insight(for goals: [SpiritualGoal]) -> String {
         switch self {
         case .consistency:
-            return "73% of believers share this challenge. Sanctuary's gentle daily reminders and streak tracking are designed exactly for this — small, faithful steps."
+            return "73% of believers share this challenge. Amave's gentle daily reminders and streak tracking are designed exactly for this — small, faithful steps."
         case .doubt:
             return "Doubt is not the opposite of faith — it's part of the journey. Our Counselor feature offers a safe space to explore your deepest questions."
         case .distraction:
-            return "In our noisy world, 68% struggle with this. Sanctuary's guided moments create a sacred bubble — even 5 minutes can center your spirit."
+            return "In our noisy world, 68% struggle with this. Amave's guided moments create a sacred bubble — even 5 minutes can center your spirit."
         case .loneliness:
             if goals.contains(.community) {
                 return "You're already seeking community — that's beautiful. Our Fellowship and Prayer Wall connect you with believers who understand your journey."
@@ -147,9 +249,9 @@ nonisolated enum SpiritualChallenge: String, CaseIterable, Identifiable, Codable
             if goals.contains(.knowledge) {
                 return "Your desire to learn is a gift. Our Journey courses break down scripture into beautiful, digestible lessons with rich context."
             }
-            return "Scripture becomes clearer with guidance. Sanctuary's Living Word feature brings passages alive with context and reflection."
+            return "Scripture becomes clearer with guidance. Amave's Living Word feature brings passages alive with context and reflection."
         case .time:
-            return "Even 5 minutes with God can transform a day. Sanctuary is built for busy lives — quick devotions, bite-sized scripture, prayers on the go."
+            return "Even 5 minutes with God can transform a day. Amave is built for busy lives — quick devotions, bite-sized scripture, prayers on the go."
         }
     }
 }

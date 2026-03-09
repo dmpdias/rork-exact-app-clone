@@ -87,7 +87,7 @@ struct AboutSettingView: View {
             }
 
             VStack(spacing: 6) {
-                Text("Sanctuary")
+                Text("Amave")
                     .font(.system(size: 32, weight: .bold, design: .serif))
                     .foregroundStyle(Theme.textDark)
 
@@ -118,7 +118,7 @@ struct AboutSettingView: View {
 
     private var linksSection: some View {
         VStack(spacing: 2) {
-            linkRow(icon: "star.fill", iconColor: Theme.goldAccent, title: "Rate Sanctuary")
+            linkRow(icon: "star.fill", iconColor: Theme.goldAccent, title: "Rate Amave")
             Divider().padding(.leading, 70)
             linkRow(icon: "square.and.arrow.up", iconColor: Theme.readingIcon, title: "Share with Friends")
             Divider().padding(.leading, 70)
@@ -171,7 +171,7 @@ struct AboutSettingView: View {
                 .italic()
                 .foregroundStyle(Theme.textLight)
 
-            Text("© 2024 Sanctuary")
+            Text("© 2025 Amave")
                 .font(.system(.caption2, design: .serif))
                 .foregroundStyle(Theme.textLight.opacity(0.7))
         }

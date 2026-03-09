@@ -151,7 +151,7 @@ class ProfileViewModel {
             ProfilePreference(title: "Reading Plan", icon: "book.fill", iconColor: Theme.readingIcon, type: .readingPlan),
             ProfilePreference(title: "Appearance", icon: "paintbrush.fill", iconColor: Theme.reflectionIcon, type: .appearance),
             ProfilePreference(title: "Privacy", icon: "lock.fill", iconColor: Theme.textMedium, type: .privacy),
-            ProfilePreference(title: "About Sanctuary", icon: "info.circle.fill", iconColor: Theme.cardBrown, type: .about),
+            ProfilePreference(title: "About Amave", icon: "info.circle.fill", iconColor: Theme.cardBrown, type: .about),
         ]
     }
 }

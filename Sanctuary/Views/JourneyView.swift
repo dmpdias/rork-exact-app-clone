@@ -305,7 +305,7 @@ struct JourneyView: View {
     }
 
     private func shareVerse() {
-        let shareText = "\"\(dailyVerse.text)\"\n— \(dailyVerse.reference)\n\nShared from Sanctuary"
+        let shareText = "\"\(dailyVerse.text)\"\n— \(dailyVerse.reference)\n\nShared from Amave"
         let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let root = scene.windows.first?.rootViewController {

@@ -1,4 +1,4 @@
-# Sanctuary — A Beautiful Faith & Devotion App
+# Amave — A Beautiful Faith & Devotion App
 
 
 ## Features
@@ -9,8 +9,11 @@
 - **Devotion score** — A circular arc of glowing dots surrounding a large score number (73), with an encouraging message and a "See what builds your score" button
 - **Daily scripture** — A beautifully styled scripture card with the verse text in italic serif, reference (e.g. JOHN 14:27), version label, and bookmark/share icons
 - **Activity log** — A list of today's spiritual activities (Morning Prayer, Scripture Reading, Daily Reflection, Week Streak) each with category labels, point values, and colored icons
-- **Five-tab navigation** — Sanctuary (home), Counselor, Community, Journey, and Profile tabs
+- **Five-tab navigation** — Home, Counselor, Community, Journey, and Profile tabs
 - **Bible progress indicator** — A small book icon in the top-right corner showing reading progress (78%)
+- **Sign in with Apple** — Native Apple authentication via AuthenticationServices
+- **Phone authentication** — Phone number sign-in with SMS verification code flow
+- **Gender & Country onboarding** — Collects gender and country during onboarding with personalized community insights
 
 ## Design
 
@@ -23,16 +26,17 @@
 - **Activity icons** — Each activity has a unique soft-colored circular icon (warm pink for prayer, teal for reading, sage green for reflection, peach for bonus)
 - **Particle dots** — Small scattered dots across the background in varying warm tones for visual richness
 - **Frosted tab bar** — Bottom tab bar with a warm cream material background
+- **Minimalist reaction faces** — Canvas-drawn line-art faces for testimonial reactions, matching the app's elegant aesthetic
 
 ## Screens
 
-- **Onboarding (10 steps + post-screens)** — Welcome screen with branding, name & age input, prayer frequency question with personalized insight, scripture reading habits with insight, spiritual goals multi-select (up to 3), biggest challenge with insight, testimonials screen with impact stats and emoji reaction picker, personalized plan based on all answers, ink signature commitment using PencilKit, congratulations overlay with animated seal, and App Store rating screen
-- **Guided Tutorial** — 6-step overlay tutorial on first Sanctuary landing, walking users through each tab with animated icons and tab highlight indicators
-- **Login** — Clean sign-in page with email/password fields, branding, forgot password, and create account link back to onboarding
-- **Sanctuary (Home)** — The main scrollable screen containing all sections: greeting, spiritual moment card, weekly streak, devotion score with circular arc, scripture card, and activity log
-- **Counselor** — Placeholder tab
-- **Community** — Placeholder tab
-- **Journey** — Placeholder tab
+- **Onboarding (11 steps + post-screens)** — Welcome screen with Apple Sign In + begin journey, name & age input, gender & country selection with community insight, prayer frequency question with personalized insight, scripture reading habits with insight, spiritual goals multi-select (up to 3), biggest challenge with insight, testimonials screen with impact stats and minimalist face reaction picker, personalized plan based on all answers, ink signature commitment using PencilKit, congratulations overlay with animated seal, and App Store rating screen
+- **Guided Tutorial** — 6-step overlay tutorial on first home landing, walking users through each tab with animated icons and tab highlight indicators
+- **Login** — Sign-in page with Sign in with Apple button, email/phone toggle with segmented control, email+password or phone+verification code fields, branding, forgot password, and create account link back to onboarding
+- **Home** — The main scrollable screen containing all sections: greeting, spiritual moment card, weekly streak, devotion score with circular arc, scripture card, and activity log
+- **Counselor** — AI spiritual counselor chat
+- **Community** — Prayer wall, fellowship rankings, and prayer rooms
+- **Journey** — Structured courses, scripture studies, and growth paths
 - **Profile** — Full profile page with breathing golden halo avatar, 2x2 stats grid (prayers, scriptures, streak, blessings), compact devotion ring, horizontally scrollable milestone cards with progress rings, settings list with colored icons, and sign-out confirmation
 
 ## App Icon

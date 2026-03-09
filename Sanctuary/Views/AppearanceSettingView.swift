@@ -7,7 +7,7 @@ struct AppearanceSettingView: View {
     private let themes: [(name: String, bg: Color, accent: Color)] = [
         ("Warm Cream", Theme.cream, Theme.divineGold),
         ("Soft Parchment", Theme.sandLight, Theme.goldDark),
-        ("Deep Sanctuary", Theme.deepCharcoal, Theme.divineGoldLight),
+        ("Deep Amave", Theme.deepCharcoal, Theme.divineGoldLight),
     ]
 
     var body: some View {

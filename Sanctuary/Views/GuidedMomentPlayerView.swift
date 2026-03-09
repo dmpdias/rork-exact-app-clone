@@ -286,7 +286,7 @@ struct GuidedMomentPlayerView: View {
 
                 Button(action: onDismiss) {
                     HStack(spacing: 10) {
-                        Text("Return to Sanctuary")
+                        Text("Return to Home")
                             .font(.system(size: 16, weight: .medium, design: .serif))
                         Image(systemName: "arrow.right")
                             .font(.system(size: 13, weight: .semibold))

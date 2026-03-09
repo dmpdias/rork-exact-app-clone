@@ -366,7 +366,7 @@ struct CourseDetailView: View {
     }
 
     private func shareCourse() {
-        let shareText = "\(item.title) — \(item.subtitle)\n\n\(item.synopsis)\n\nShared from Sanctuary"
+        let shareText = "\(item.title) — \(item.subtitle)\n\n\(item.synopsis)\n\nShared from Amave"
         let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let root = scene.windows.first?.rootViewController {

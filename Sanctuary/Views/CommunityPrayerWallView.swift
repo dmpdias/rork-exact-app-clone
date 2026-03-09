@@ -452,7 +452,7 @@ struct SharePrayerSheet: View {
 
             VStack(spacing: 10) {
                 Button {
-                    UIPasteboard.general.string = "\"\(prayer.text)\" — \(prayer.displayName) (via Sanctuary)"
+                    UIPasteboard.general.string = "\"\(prayer.text)\" — \(prayer.displayName) (via Amave)"
                     copied = true
                     Task {
                         try? await Task.sleep(for: .seconds(2))

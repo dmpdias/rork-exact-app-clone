@@ -1,4 +1,5 @@
 import SwiftUI
+import AuthenticationServices
 
 struct OnboardingView: View {
     @State private var vm = OnboardingViewModel()
@@ -20,13 +21,14 @@ struct OnboardingView: View {
                 TabView(selection: $vm.currentStep) {
                     welcomeScreen.tag(0)
                     nameAgeScreen.tag(1)
-                    prayerScreen.tag(2)
-                    scriptureScreen.tag(3)
-                    goalsScreen.tag(4)
-                    challengeScreen.tag(5)
-                    testimonialScreen.tag(6)
-                    planScreen.tag(7)
-                    signatureScreen.tag(8)
+                    genderCountryScreen.tag(2)
+                    prayerScreen.tag(3)
+                    scriptureScreen.tag(4)
+                    goalsScreen.tag(5)
+                    challengeScreen.tag(6)
+                    testimonialScreen.tag(7)
+                    planScreen.tag(8)
+                    signatureScreen.tag(9)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.spring(response: 0.5, dampingFraction: 0.85), value: vm.currentStep)
@@ -137,7 +139,7 @@ struct OnboardingView: View {
                 }
 
                 VStack(spacing: 12) {
-                    Text("Sanctuary")
+                    Text("Amave")
                         .font(.system(size: 42, weight: .bold, design: .serif))
                         .foregroundStyle(Theme.textDark)
 
@@ -159,7 +161,22 @@ struct OnboardingView: View {
 
             Spacer()
 
-            VStack(spacing: 16) {
+            VStack(spacing: 14) {
+                SignInWithAppleButton(.signUp) { request in
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { result in
+                    switch result {
+                    case .success:
+                        onComplete()
+                    case .failure:
+                        break
+                    }
+                }
+                .signInWithAppleButtonStyle(.black)
+                .frame(height: 52)
+                .clipShape(.rect(cornerRadius: 26))
+                .padding(.horizontal, 32)
+
                 Button {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
                         vm.currentStep = 1
@@ -265,6 +282,134 @@ struct OnboardingView: View {
                         }
                     }
                     .padding(.horizontal, 24)
+                }
+
+                Spacer(minLength: 100)
+            }
+            .padding(.top, 24)
+            .safeAreaInset(edge: .bottom) {
+                continueButton { vm.nextStep() }
+                    .opacity(vm.canProceed ? 1 : 0.4)
+                    .disabled(!vm.canProceed)
+            }
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .scrollIndicators(.hidden)
+    }
+
+    // MARK: - Gender & Country
+
+    private var genderCountryScreen: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 28) {
+                questionHeader(
+                    label: "ABOUT YOU",
+                    title: "Tell us a little\nmore.",
+                    subtitle: "This helps us connect you with your community."
+                )
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("GENDER")
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(1.5)
+                        .foregroundStyle(Theme.textLight)
+                        .padding(.horizontal, 24)
+
+                    HStack(spacing: 10) {
+                        ForEach(Gender.allCases) { gender in
+                            Button {
+                                withAnimation(.spring(response: 0.3)) {
+                                    vm.selectedGender = gender
+                                }
+                            } label: {
+                                VStack(spacing: 8) {
+                                    Image(systemName: gender.icon)
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(vm.selectedGender == gender ? Theme.goldDark : Theme.textMedium)
+
+                                    Text(gender.rawValue)
+                                        .font(.system(size: 11, weight: .medium, design: .serif))
+                                        .foregroundStyle(vm.selectedGender == gender ? Theme.textDark : Theme.textMedium)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(vm.selectedGender == gender ? Theme.goldAccent.opacity(0.12) : Theme.sandLight.opacity(0.5))
+                                        .strokeBorder(vm.selectedGender == gender ? Theme.goldAccent.opacity(0.4) : Theme.sandDark.opacity(0.12), lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("COUNTRY")
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(1.5)
+                        .foregroundStyle(Theme.textLight)
+                        .padding(.horizontal, 24)
+
+                    HStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Theme.textLight)
+
+                        TextField("", text: $vm.countrySearchText, prompt: Text("Search country").foregroundStyle(Theme.textLight.opacity(0.5)))
+                            .font(.system(.subheadline, design: .serif))
+                            .foregroundStyle(Theme.textDark)
+                    }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Theme.sandLight.opacity(0.6))
+                            .strokeBorder(Theme.sandDark.opacity(0.15), lineWidth: 1)
+                    )
+                    .padding(.horizontal, 24)
+
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                        ForEach(vm.filteredCountries) { country in
+                            Button {
+                                withAnimation(.spring(response: 0.3)) {
+                                    vm.selectedCountry = country
+                                    vm.showInsight = false
+                                }
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Text(country.flag)
+                                        .font(.system(size: 18))
+
+                                    Text(country.rawValue)
+                                        .font(.system(size: 13, weight: .medium, design: .serif))
+                                        .foregroundStyle(vm.selectedCountry == country ? Theme.textDark : Theme.textMedium)
+                                        .lineLimit(1)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 11)
+                                .padding(.horizontal, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(vm.selectedCountry == country ? Theme.goldAccent.opacity(0.12) : Theme.sandLight.opacity(0.4))
+                                        .strokeBorder(vm.selectedCountry == country ? Theme.goldAccent.opacity(0.4) : Theme.sandDark.opacity(0.1), lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                }
+
+                if vm.showInsight, let insight = vm.currentInsight {
+                    insightCard(insight)
+                        .transition(.asymmetric(
+                            insertion: .scale(scale: 0.95).combined(with: .opacity),
+                            removal: .opacity
+                        ))
                 }
 
                 Spacer(minLength: 100)
@@ -602,7 +747,7 @@ struct OnboardingView: View {
             .safeAreaInset(edge: .bottom) {
                 continueButton(title: "Sign Your Commitment") {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-                        vm.currentStep = 8
+                        vm.currentStep = 9
                     }
                 }
             }
@@ -644,7 +789,7 @@ struct OnboardingView: View {
                         .font(.system(size: 28, weight: .bold, design: .serif))
                         .foregroundStyle(Theme.textDark)
 
-                    Text("See how Sanctuary has touched\nthousands of hearts.")
+                    Text("See how Amave has touched\nthousands of hearts.")
                         .font(.system(.subheadline, design: .serif))
                         .foregroundStyle(Theme.textMedium)
                         .multilineTextAlignment(.center)
@@ -658,7 +803,7 @@ struct OnboardingView: View {
                     testimonialCard(
                         initials: "S.M.",
                         name: "Sarah, 28",
-                        text: "I was lost and anxious every day. Sanctuary gave me a rhythm of prayer that completely changed my mornings. I feel peace for the first time in years.",
+                        text: "I was lost and anxious every day. Amave gave me a rhythm of prayer that completely changed my mornings. I feel peace for the first time in years.",
                         color: Color(red: 0.55, green: 0.75, blue: 0.65)
                     )
 
@@ -684,28 +829,31 @@ struct OnboardingView: View {
                         .fontWeight(.medium)
                         .foregroundStyle(Theme.textDark)
 
-                    HStack(spacing: 20) {
-                        ForEach(reactionOptions, id: \.symbol) { option in
+                    HStack(spacing: 16) {
+                        ForEach(reactionOptions, id: \.id) { option in
                             Button {
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                    vm.selectedTestimonialReaction = option.symbol
+                                    vm.selectedTestimonialReaction = option.id
                                 }
                             } label: {
-                                VStack(spacing: 6) {
-                                    Text(option.symbol)
-                                        .font(.system(size: 36))
-                                        .scaleEffect(vm.selectedTestimonialReaction == option.symbol ? 1.25 : 1.0)
+                                VStack(spacing: 8) {
+                                    MinimalistFaceView(
+                                        expression: option.expression,
+                                        isSelected: vm.selectedTestimonialReaction == option.id
+                                    )
+                                    .frame(width: 40, height: 40)
+                                    .scaleEffect(vm.selectedTestimonialReaction == option.id ? 1.15 : 1.0)
 
                                     Text(option.label)
                                         .font(.system(size: 10, weight: .medium, design: .serif))
-                                        .foregroundStyle(vm.selectedTestimonialReaction == option.symbol ? Theme.textDark : Theme.textLight)
+                                        .foregroundStyle(vm.selectedTestimonialReaction == option.id ? Theme.textDark : Theme.textLight)
                                 }
-                                .frame(width: 60)
-                                .padding(.vertical, 10)
+                                .frame(width: 64)
+                                .padding(.vertical, 12)
                                 .background(
                                     RoundedRectangle(cornerRadius: 14)
-                                        .fill(vm.selectedTestimonialReaction == option.symbol ? Theme.goldAccent.opacity(0.15) : Color.clear)
-                                        .strokeBorder(vm.selectedTestimonialReaction == option.symbol ? Theme.goldAccent.opacity(0.4) : Color.clear, lineWidth: 1.5)
+                                        .fill(vm.selectedTestimonialReaction == option.id ? Theme.goldAccent.opacity(0.12) : Color.clear)
+                                        .strokeBorder(vm.selectedTestimonialReaction == option.id ? Theme.goldAccent.opacity(0.35) : Color.clear, lineWidth: 1.5)
                                 )
                             }
                             .buttonStyle(.plain)
@@ -816,24 +964,30 @@ struct OnboardingView: View {
         )
     }
 
-    private var reactionOptions: [(symbol: String, label: String)] {
+    private struct ReactionOption {
+        let id: String
+        let label: String
+        let expression: MinimalistFaceView.Expression
+    }
+
+    private var reactionOptions: [ReactionOption] {
         [
-            ("\u{1F60A}", "Hopeful"),
-            ("\u{1F62D}", "Moved"),
-            ("\u{2764}\u{FE0F}", "Inspired"),
-            ("\u{1F64F}", "Grateful")
+            ReactionOption(id: "hopeful", label: "Hopeful", expression: .hopeful),
+            ReactionOption(id: "moved", label: "Moved", expression: .moved),
+            ReactionOption(id: "inspired", label: "Inspired", expression: .inspired),
+            ReactionOption(id: "grateful", label: "Grateful", expression: .grateful)
         ]
     }
 
-    private func reactionResponse(for symbol: String) -> String {
-        switch symbol {
-        case "\u{1F60A}":
+    private func reactionResponse(for id: String) -> String {
+        switch id {
+        case "hopeful":
             return "That hope you feel? It's just the beginning. Your journey is about to grow even deeper."
-        case "\u{1F62D}":
+        case "moved":
             return "Tears of compassion are a gift. Your tender heart is exactly what this community needs."
-        case "\u{2764}\u{FE0F}":
+        case "inspired":
             return "That inspiration is God speaking to you. You're ready for something beautiful."
-        case "\u{1F64F}":
+        case "grateful":
             return "Gratitude opens every door. You're already walking in the right spirit."
         default:
             return "Your heart is in the right place. Let's build your path together."
@@ -1139,7 +1293,7 @@ struct OnboardingView: View {
                     }
 
                     VStack(spacing: 6) {
-                        Text("Your sanctuary is prepared.")
+                        Text("Your journey is prepared.")
                             .font(.system(.body, design: .serif))
                             .foregroundStyle(Theme.textMedium)
 
@@ -1303,7 +1457,7 @@ struct OnboardingView: View {
                         onComplete()
                     } label: {
                         HStack(spacing: 10) {
-                            Text(vm.ratingStars > 0 ? "Enter Sanctuary" : "Enter Sanctuary")
+                            Text("Enter Amave")
                                 .font(.system(.body, design: .serif))
                                 .fontWeight(.semibold)
 
