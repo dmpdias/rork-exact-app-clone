@@ -332,6 +332,7 @@ nonisolated enum SpiritualStyle: String, CaseIterable, Identifiable, Codable, Se
 
 nonisolated struct PersonalizedPlan: Sendable {
     let userName: String
+    let spiritualStyle: SpiritualStyle
     let commitments: [PlanCommitment]
     let verse: String
     let verseReference: String

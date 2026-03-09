@@ -770,7 +770,21 @@ struct OnboardingView: View {
         let plan = vm.generatePlan()
 
         return ScrollView {
-            VStack(spacing: 28) {
+            VStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Step 4 of 6")
+                        .font(.system(size: 12, weight: .medium, design: .serif))
+                        .foregroundStyle(Theme.goldDark)
+                        .padding(.horizontal, 24)
+
+                    Text("YOUR PERSONALIZED PATH")
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(2)
+                        .foregroundStyle(Theme.goldDark)
+                        .padding(.horizontal, 24)
+                }
+                .padding(.top, 20)
+
                 VStack(spacing: 16) {
                     ZStack {
                         Circle()
@@ -796,18 +810,17 @@ struct OnboardingView: View {
                             .symbolEffect(.breathe)
                     }
 
-                    Text("\(plan.userName),\nhere's your path.")
-                        .font(.system(size: 32, weight: .bold, design: .serif))
+                    Text("\(plan.userName),\nhere's your personalized path")
+                        .font(.system(size: 28, weight: .bold, design: .serif))
                         .foregroundStyle(Theme.textDark)
                         .multilineTextAlignment(.center)
                         .lineSpacing(2)
 
-                    Text("Crafted from everything you've shared.")
+                    Text("Based on your \(plan.spiritualStyle.rawValue) style")
                         .font(.system(.subheadline, design: .serif))
                         .italic()
                         .foregroundStyle(Theme.textMedium)
                 }
-                .padding(.top, 20)
 
                 VStack(spacing: 0) {
                     ForEach(Array(plan.commitments.enumerated()), id: \.element.id) { index, commitment in
@@ -869,7 +882,7 @@ struct OnboardingView: View {
                         .foregroundStyle(Theme.goldDark)
                 }
                 .padding(.horizontal, 32)
-                .padding(.vertical, 20)
+                .padding(.vertical, 16)
 
                 Spacer(minLength: 100)
             }

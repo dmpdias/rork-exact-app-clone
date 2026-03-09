@@ -134,107 +134,88 @@ class OnboardingViewModel {
     func generatePlan() -> PersonalizedPlan {
         var commitments: [PlanCommitment] = []
 
-        if let prayer = selectedPrayerFrequency {
-            switch prayer {
-            case .rarely, .weekly:
-                commitments.append(PlanCommitment(
-                    icon: "hands.sparkles",
-                    title: "Daily Prayer Moment",
-                    description: "Start with a guided 3-minute prayer each morning"
-                ))
-            case .daily:
-                commitments.append(PlanCommitment(
-                    icon: "hands.sparkles",
-                    title: "Deepen Your Prayer",
-                    description: "Explore different prayer styles — contemplative, intercessory, gratitude"
-                ))
-            case .multiple:
-                commitments.append(PlanCommitment(
-                    icon: "hands.sparkles",
-                    title: "Prayer Warrior Path",
-                    description: "Lead prayers on the Community Wall and mentor new believers"
-                ))
-            }
+        let style = selectedSpiritualStyle ?? .traditional
+        switch style {
+        case .traditional:
+            commitments.append(PlanCommitment(
+                icon: "building.columns.fill",
+                title: "Daily Rosary Guidance",
+                description: "Walk through the mysteries each day with Father Anthony"
+            ))
+        case .progressive:
+            commitments.append(PlanCommitment(
+                icon: "hands.sparkles",
+                title: "Morning Prayer for Mercy",
+                description: "Start each day with prayers for mercy and justice with Sister Ana"
+            ))
+        case .contemporary:
+            commitments.append(PlanCommitment(
+                icon: "sparkles",
+                title: "5-Minute Daily Check-ins",
+                description: "Quick, honest conversations about faith with Brother Miguel"
+            ))
+        case .intellectual:
+            commitments.append(PlanCommitment(
+                icon: "book.closed.fill",
+                title: "Deep Scripture Study",
+                description: "Explore theology and philosophy of the Word with Professor Peter"
+            ))
         }
 
-        if let scripture = selectedScriptureFrequency {
-            switch scripture {
-            case .never, .occasionally:
+        if let prayer = selectedPrayerFrequency {
+            switch prayer {
+            case .rarely:
                 commitments.append(PlanCommitment(
-                    icon: "book.fill",
-                    title: "Scripture Discovery",
-                    description: "One meaningful verse each day with guided reflection"
+                    icon: "bell.fill",
+                    title: "Gentle Reminders",
+                    description: "Build your rhythm with kind nudges to pause and pray"
                 ))
             case .weekly:
                 commitments.append(PlanCommitment(
-                    icon: "book.fill",
-                    title: "Reading Journey",
-                    description: "Follow a structured reading plan through the Gospels"
+                    icon: "calendar.badge.clock",
+                    title: "Structure Your Practice",
+                    description: "A weekly framework to deepen and anchor your prayer life"
                 ))
-            case .daily:
-                commitments.append(PlanCommitment(
-                    icon: "book.fill",
-                    title: "Deep Study Path",
-                    description: "In-depth chapter studies with historical context and application"
-                ))
-            }
-        }
-
-        for goal in selectedGoals.prefix(2) {
-            switch goal {
-            case .peace:
-                commitments.append(PlanCommitment(
-                    icon: "leaf.fill",
-                    title: "Sacred Stillness",
-                    description: "Evening reflection moments to find peace before rest"
-                ))
-            case .community:
-                commitments.append(PlanCommitment(
-                    icon: "person.2.fill",
-                    title: "Fellowship Connection",
-                    description: "Join a prayer group and share your journey with others"
-                ))
-            case .guidance:
-                commitments.append(PlanCommitment(
-                    icon: "star.fill",
-                    title: "Divine Wisdom",
-                    description: "Weekly Counselor sessions for life's biggest questions"
-                ))
-            case .healing:
-                commitments.append(PlanCommitment(
-                    icon: "heart.fill",
-                    title: "Healing Journey",
-                    description: "Guided emotional prayers and scripture for restoration"
-                ))
-            case .discipline:
+            case .daily, .multiple:
                 commitments.append(PlanCommitment(
                     icon: "flame.fill",
-                    title: "Faithful Rhythm",
-                    description: "Build an unbreakable streak with daily devotion tracking"
-                ))
-            case .knowledge:
-                commitments.append(PlanCommitment(
-                    icon: "text.book.closed.fill",
-                    title: "Biblical Mastery",
-                    description: "Structured courses through books of the Bible"
+                    title: "Advanced Reflections",
+                    description: "Enrich your devotion with contemplative and intercessory prayers"
                 ))
             }
+        } else {
+            commitments.append(PlanCommitment(
+                icon: "bell.fill",
+                title: "Gentle Reminders",
+                description: "Build your rhythm with kind nudges to pause and pray"
+            ))
         }
 
-        let verseOptions: [(String, String)] = [
-            ("\"For I know the plans I have for you,\" declares the Lord, \"plans to prosper you and not to harm you, plans to give you hope and a future.\"", "Jeremiah 29:11"),
-            ("Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.", "Proverbs 3:5-6"),
-            ("I can do all this through him who gives me strength.", "Philippians 4:13"),
-            ("Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.", "Joshua 1:9")
-        ]
+        let countryName = selectedCountry?.rawValue ?? "your country"
+        commitments.append(PlanCommitment(
+            icon: "person.3.fill",
+            title: "Join Catholics in \(countryName)",
+            description: "Connect with believers near you praying together every day"
+        ))
 
-        let selected = verseOptions[commitments.count % verseOptions.count]
+        let verseInfo: (String, String)
+        switch style {
+        case .traditional:
+            verseInfo = ("Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.", "Proverbs 3:5-6")
+        case .progressive:
+            verseInfo = ("Blessed are the merciful, for they will be shown mercy. Blessed are the peacemakers, for they will be called children of God.", "Matthew 5:7-9")
+        case .contemporary:
+            verseInfo = ("The Lord is my shepherd, I lack nothing. He makes me lie down in green pastures, he leads me beside quiet waters, he refreshes my soul.", "Psalm 23:1-3")
+        case .intellectual:
+            verseInfo = ("In the beginning was the Word, and the Word was with God, and the Word was God. Through him all things were made.", "John 1:1-3")
+        }
 
         return PersonalizedPlan(
             userName: userName.trimmingCharacters(in: .whitespaces),
+            spiritualStyle: style,
             commitments: commitments,
-            verse: selected.0,
-            verseReference: selected.1
+            verse: verseInfo.0,
+            verseReference: verseInfo.1
         )
     }
 }
