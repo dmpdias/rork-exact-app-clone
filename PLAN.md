@@ -14,6 +14,8 @@
 - **Sign in with Apple** — Native Apple authentication via AuthenticationServices
 - **Phone authentication** — Phone number sign-in with SMS verification code flow
 - **Gender & Country onboarding** — Collects gender and country during onboarding with personalized community insights
+- **Mass Attendance & Sacraments** — Collects church life details (Mass participation, guiding sacraments) in About You screen
+- **Spiritual Path selection** — 2x2 card grid to choose faith style (Traditional, Progressive, Contemporary, Intellectual) which determines the Counselor persona throughout the app
 
 ## Design
 
@@ -30,7 +32,7 @@
 
 ## Screens
 
-- **Onboarding (11 steps + post-screens)** — Welcome screen with Apple Sign In + begin journey, name & age input, gender & country selection with community insight, prayer frequency question with personalized insight, scripture reading habits with insight, spiritual goals multi-select (up to 3), biggest challenge with insight, testimonials screen with impact stats and minimalist face reaction picker, personalized plan based on all answers, ink signature commitment using PencilKit, congratulations overlay with animated seal, and App Store rating screen
+- **Onboarding (12 steps + post-screens)** — Welcome screen with Apple Sign In + begin journey, name/age/gender/country + Mass attendance + sacraments input, spiritual path selection (Traditional/Progressive/Contemporary/Intellectual with guide persona preview), prayer frequency question with personalized insight, scripture reading habits with insight, spiritual goals multi-select (up to 3), biggest challenge with insight, testimonials screen with impact stats and minimalist face reaction picker, personalized plan based on all answers, ink signature commitment using PencilKit, congratulations overlay with animated seal, and App Store rating screen
 - **Guided Tutorial** — 6-step overlay tutorial on first home landing, walking users through each tab with animated icons and tab highlight indicators
 - **Login** — Sign-in page with Sign in with Apple button, email/phone toggle with segmented control, email+password or phone+verification code fields, branding, forgot password, and create account link back to onboarding
 - **Home** — The main scrollable screen containing all sections: greeting, spiritual moment card, weekly streak, devotion score with circular arc, scripture card, and activity log

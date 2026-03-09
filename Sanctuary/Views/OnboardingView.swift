@@ -21,13 +21,14 @@ struct OnboardingView: View {
                 TabView(selection: $vm.currentStep) {
                     welcomeScreen.tag(0)
                     aboutYouScreen.tag(1)
-                    prayerScreen.tag(2)
-                    scriptureScreen.tag(3)
-                    goalsScreen.tag(4)
-                    challengeScreen.tag(5)
-                    testimonialScreen.tag(6)
-                    planScreen.tag(7)
-                    signatureScreen.tag(8)
+                    spiritualPathScreen.tag(2)
+                    prayerScreen.tag(3)
+                    scriptureScreen.tag(4)
+                    goalsScreen.tag(5)
+                    challengeScreen.tag(6)
+                    testimonialScreen.tag(7)
+                    planScreen.tag(8)
+                    signatureScreen.tag(9)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.spring(response: 0.5, dampingFraction: 0.85), value: vm.currentStep)
@@ -349,6 +350,103 @@ struct OnboardingView: View {
                     .padding(.horizontal, 24)
                 }
 
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("YOUR CHURCH LIFE")
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(1.5)
+                        .foregroundStyle(Theme.textLight)
+                        .padding(.horizontal, 24)
+
+                    Text("How do you participate in the Mass?")
+                        .font(.system(.body, design: .serif))
+                        .fontWeight(.medium)
+                        .foregroundStyle(Theme.textDark)
+                        .padding(.horizontal, 24)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(MassAttendance.allCases) { mass in
+                                Button {
+                                    withAnimation(.spring(response: 0.3)) {
+                                        vm.massAttendance = mass
+                                        vm.showInsight = false
+                                    }
+                                } label: {
+                                    Text(mass.rawValue)
+                                        .font(.system(size: 14, weight: .medium, design: .serif))
+                                        .foregroundStyle(vm.massAttendance == mass ? Theme.cream : Theme.textMedium)
+                                        .padding(.horizontal, 18)
+                                        .padding(.vertical, 10)
+                                        .background(
+                                            Capsule()
+                                                .fill(vm.massAttendance == mass ? Theme.cardBrown : Theme.sandLight.opacity(0.6))
+                                                .strokeBorder(vm.massAttendance == mass ? Theme.goldAccent.opacity(0.4) : Theme.sandDark.opacity(0.15), lineWidth: 1)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                    .contentMargins(.horizontal, 24)
+
+                    if let mass = vm.massAttendance, let insight = mass.insight {
+                        Text(insight)
+                            .font(.system(size: 13, design: .serif))
+                            .italic()
+                            .foregroundStyle(Theme.goldDark)
+                            .padding(.horizontal, 24)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("SACRAMENTS")
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(1.5)
+                        .foregroundStyle(Theme.textLight)
+                        .padding(.horizontal, 24)
+
+                    Text("Which sacraments guide your life?")
+                        .font(.system(.body, design: .serif))
+                        .fontWeight(.medium)
+                        .foregroundStyle(Theme.textDark)
+                        .padding(.horizontal, 24)
+
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                        ForEach(Sacrament.allCases) { sacrament in
+                            Button {
+                                withAnimation(.spring(response: 0.3)) {
+                                    vm.toggleSacrament(sacrament)
+                                }
+                            } label: {
+                                let isSelected = vm.selectedSacraments.contains(sacrament)
+                                HStack(spacing: 10) {
+                                    Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(isSelected ? Theme.goldDark : Theme.textLight)
+
+                                    Text(sacrament.rawValue)
+                                        .font(.system(size: 14, weight: .medium, design: .serif))
+                                        .foregroundStyle(isSelected ? Theme.textDark : Theme.textMedium)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(isSelected ? Theme.goldAccent.opacity(0.08) : Theme.sandLight.opacity(0.5))
+                                        .strokeBorder(isSelected ? Theme.goldAccent.opacity(0.35) : Theme.sandDark.opacity(0.12), lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                }
+
                 if vm.showInsight, let insight = vm.currentInsight {
                     insightCard(insight)
                         .transition(.asymmetric(
@@ -415,6 +513,114 @@ struct OnboardingView: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+
+    // MARK: - Spiritual Path
+
+    private var spiritualPathScreen: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 28) {
+                questionHeader(
+                    label: "YOUR SPIRITUAL PATH",
+                    title: "How do you connect\nwith your faith?",
+                    subtitle: "This helps us personalize everything."
+                )
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    ForEach(SpiritualStyle.allCases) { style in
+                        Button {
+                            withAnimation(.spring(response: 0.3)) {
+                                vm.selectedSpiritualStyle = style
+                                vm.showInsight = false
+                            }
+                        } label: {
+                            spiritualStyleCard(style)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 24)
+
+                if let style = vm.selectedSpiritualStyle {
+                    HStack(spacing: 10) {
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Theme.goldDark)
+
+                        Text(style.guideName)
+                            .font(.system(.subheadline, design: .serif))
+                            .italic()
+                            .foregroundStyle(Theme.goldDark)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Theme.goldAccent.opacity(0.08))
+                            .strokeBorder(Theme.goldAccent.opacity(0.2), lineWidth: 1)
+                    )
+                    .padding(.horizontal, 24)
+                    .transition(.asymmetric(
+                        insertion: .scale(scale: 0.95).combined(with: .opacity),
+                        removal: .opacity
+                    ))
+                }
+
+                if vm.showInsight, let insight = vm.currentInsight {
+                    insightCard(insight)
+                        .transition(.asymmetric(
+                            insertion: .scale(scale: 0.95).combined(with: .opacity),
+                            removal: .opacity
+                        ))
+                }
+
+                Spacer(minLength: 100)
+            }
+            .padding(.top, 24)
+            .safeAreaInset(edge: .bottom) {
+                continueButton { vm.nextStep() }
+                    .opacity(vm.canProceed ? 1 : 0.4)
+                    .disabled(!vm.canProceed)
+            }
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private func spiritualStyleCard(_ style: SpiritualStyle) -> some View {
+        let isSelected = vm.selectedSpiritualStyle == style
+
+        return VStack(spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(isSelected ? Theme.goldAccent.opacity(0.15) : Theme.sandLight.opacity(0.8))
+                    .frame(width: 52, height: 52)
+
+                Image(systemName: style.icon)
+                    .font(.system(size: 22))
+                    .foregroundStyle(isSelected ? Theme.goldDark : Theme.textMedium)
+            }
+
+            Text(style.rawValue)
+                .font(.system(.subheadline, design: .serif))
+                .fontWeight(.semibold)
+                .foregroundStyle(isSelected ? Theme.textDark : Theme.textMedium)
+
+            Text(style.subtitle)
+                .font(.system(size: 11, design: .serif))
+                .foregroundStyle(Theme.textLight)
+                .multilineTextAlignment(.center)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
+        .padding(.horizontal, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(isSelected ? Theme.goldAccent.opacity(0.06) : Theme.sandLight.opacity(0.4))
+                .strokeBorder(isSelected ? Theme.goldAccent.opacity(0.5) : Theme.sandDark.opacity(0.1), lineWidth: isSelected ? 2 : 1)
+        )
+        .scaleEffect(isSelected ? 1.02 : 1.0)
     }
 
     // MARK: - Prayer
@@ -739,7 +945,7 @@ struct OnboardingView: View {
             .safeAreaInset(edge: .bottom) {
                 continueButton(title: "Sign Your Commitment") {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-                        vm.currentStep = 8
+                        vm.currentStep = 9
                     }
                 }
             }

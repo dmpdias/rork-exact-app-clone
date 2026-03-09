@@ -256,6 +256,80 @@ nonisolated enum SpiritualChallenge: String, CaseIterable, Identifiable, Codable
     }
 }
 
+nonisolated enum MassAttendance: String, CaseIterable, Identifiable, Codable, Sendable {
+    case weekly = "Weekly"
+    case whenICan = "When I can"
+    case online = "Online"
+    case reconnecting = "Reconnecting"
+
+    var id: String { rawValue }
+
+    var insight: String? {
+        switch self {
+        case .reconnecting: return "Welcome back. The Church is always open."
+        case .weekly: return "Your devotion is beautiful. Let's deepen it."
+        case .online: return "Faith transcends walls. You're still part of the Body."
+        case .whenICan: return nil
+        }
+    }
+}
+
+nonisolated enum Sacrament: String, CaseIterable, Identifiable, Codable, Sendable {
+    case eucharist = "Eucharist"
+    case confession = "Confession"
+    case confirmation = "Confirmation"
+    case marriage = "Marriage"
+    case exploring = "I'm exploring"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .eucharist: return "cup.and.saucer.fill"
+        case .confession: return "hand.raised.fill"
+        case .confirmation: return "flame.fill"
+        case .marriage: return "heart.fill"
+        case .exploring: return "sparkle"
+        }
+    }
+}
+
+nonisolated enum SpiritualStyle: String, CaseIterable, Identifiable, Codable, Sendable {
+    case traditional = "Traditional"
+    case progressive = "Progressive"
+    case contemporary = "Contemporary"
+    case intellectual = "Intellectual"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .traditional: return "building.columns.fill"
+        case .progressive: return "hands.sparkles"
+        case .contemporary: return "sparkles"
+        case .intellectual: return "book.closed.fill"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .traditional: return "Liturgy, tradition, and 2000 years of Church wisdom"
+        case .progressive: return "Mercy, inclusion, and Pope Francis's vision"
+        case .contemporary: return "Practical faith for everyday life, no filters"
+        case .intellectual: return "Theology, philosophy, and deep questions"
+        }
+    }
+
+    var guideName: String {
+        switch self {
+        case .traditional: return "Father Anthony will guide you"
+        case .progressive: return "Sister Ana will guide you"
+        case .contemporary: return "Brother Miguel will guide you"
+        case .intellectual: return "Professor Peter will guide you"
+        }
+    }
+}
+
 nonisolated struct PersonalizedPlan: Sendable {
     let userName: String
     let commitments: [PlanCommitment]
