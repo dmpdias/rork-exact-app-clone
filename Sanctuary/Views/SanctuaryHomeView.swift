@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct SanctuaryHomeView: View {
+    @AppStorage("hasSeenTutorial") private var hasSeenTutorial: Bool = false
+    @State private var showTutorial: Bool = false
     @State private var showGuidedMoment: Bool = false
     @State private var showBibleProgress: Bool = false
     @State private var showDevotionBreakdown: Bool = false
@@ -76,6 +78,23 @@ struct SanctuaryHomeView: View {
                 DayDetailView(day: info.day, dayIndex: info.index)
                     .presentationDetents([.medium])
                     .presentationDragIndicator(.visible)
+            }
+        }
+        .overlay {
+            if showTutorial {
+                GuidedTutorialOverlay {
+                    withAnimation(.spring(response: 0.4)) {
+                        showTutorial = false
+                        hasSeenTutorial = true
+                    }
+                }
+            }
+        }
+        .onAppear {
+            if !hasSeenTutorial {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showTutorial = true
+                }
             }
         }
     }

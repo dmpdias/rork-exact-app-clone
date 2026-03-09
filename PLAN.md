@@ -26,7 +26,8 @@
 
 ## Screens
 
-- **Onboarding (8 steps)** — Welcome screen with branding, name & age input, prayer frequency question with personalized insight, scripture reading habits with insight, spiritual goals multi-select (up to 3), biggest challenge with insight, personalized plan based on all answers, and ink signature commitment using PencilKit
+- **Onboarding (10 steps + post-screens)** — Welcome screen with branding, name & age input, prayer frequency question with personalized insight, scripture reading habits with insight, spiritual goals multi-select (up to 3), biggest challenge with insight, testimonials screen with impact stats and emoji reaction picker, personalized plan based on all answers, ink signature commitment using PencilKit, congratulations overlay with animated seal, and App Store rating screen
+- **Guided Tutorial** — 6-step overlay tutorial on first Sanctuary landing, walking users through each tab with animated icons and tab highlight indicators
 - **Login** — Clean sign-in page with email/password fields, branding, forgot password, and create account link back to onboarding
 - **Sanctuary (Home)** — The main scrollable screen containing all sections: greeting, spiritual moment card, weekly streak, devotion score with circular arc, scripture card, and activity log
 - **Counselor** — Placeholder tab

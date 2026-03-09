@@ -13,8 +13,13 @@ class OnboardingViewModel {
     var showInsight: Bool = false
     var planGenerated: Bool = false
     var hasSigned: Bool = false
+    var selectedTestimonialReaction: String? = nil
+    var showCongrats: Bool = false
+    var showRating: Bool = false
+    var congratsAnimated: Bool = false
+    var ratingStars: Int = 0
 
-    let totalSteps: Int = 6
+    let totalSteps: Int = 8
 
     var progress: Double {
         Double(currentStep) / Double(totalSteps + 1)
@@ -28,6 +33,7 @@ class OnboardingViewModel {
         case 3: return selectedScriptureFrequency != nil
         case 4: return !selectedGoals.isEmpty
         case 5: return selectedChallenge != nil
+        case 6: return selectedTestimonialReaction != nil
         default: return true
         }
     }
@@ -43,6 +49,22 @@ class OnboardingViewModel {
         withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
             showInsight = false
             currentStep += 1
+        }
+    }
+
+    func triggerCongrats() {
+        showCongrats = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.spring(response: 0.8, dampingFraction: 0.6)) {
+                self.congratsAnimated = true
+            }
+        }
+    }
+
+    func triggerRating() {
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+            showCongrats = false
+            showRating = true
         }
     }
 

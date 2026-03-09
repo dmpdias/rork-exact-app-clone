@@ -13,7 +13,7 @@ struct OnboardingView: View {
             backgroundLayer
 
             VStack(spacing: 0) {
-                if vm.currentStep > 0 && vm.currentStep <= vm.totalSteps {
+                if vm.currentStep > 0 && vm.currentStep <= vm.totalSteps && !vm.showCongrats && !vm.showRating {
                     topBar
                 }
 
@@ -24,11 +24,25 @@ struct OnboardingView: View {
                     scriptureScreen.tag(3)
                     goalsScreen.tag(4)
                     challengeScreen.tag(5)
-                    planScreen.tag(6)
-                    signatureScreen.tag(7)
+                    testimonialScreen.tag(6)
+                    planScreen.tag(7)
+                    signatureScreen.tag(8)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.spring(response: 0.5, dampingFraction: 0.85), value: vm.currentStep)
+                .allowsHitTesting(!vm.showCongrats && !vm.showRating)
+            }
+
+            if vm.showCongrats {
+                congratulationsOverlay
+                    .transition(.opacity)
+                    .zIndex(10)
+            }
+
+            if vm.showRating {
+                ratingOverlay
+                    .transition(.opacity)
+                    .zIndex(11)
             }
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
@@ -483,10 +497,30 @@ struct OnboardingView: View {
 
         return ScrollView {
             VStack(spacing: 28) {
-                VStack(spacing: 12) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 28))
-                        .foregroundStyle(Theme.goldAccent)
+                VStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [Theme.goldLight.opacity(0.3), Theme.goldAccent.opacity(0.05)],
+                                    center: .center,
+                                    startRadius: 15,
+                                    endRadius: 55
+                                )
+                            )
+                            .frame(width: 100, height: 100)
+
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 38))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Theme.goldLight, Theme.goldDark],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .symbolEffect(.breathe)
+                    }
 
                     Text("\(plan.userName),\nhere's your path.")
                         .font(.system(size: 32, weight: .bold, design: .serif))
@@ -568,12 +602,242 @@ struct OnboardingView: View {
             .safeAreaInset(edge: .bottom) {
                 continueButton(title: "Sign Your Commitment") {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-                        vm.currentStep = 7
+                        vm.currentStep = 8
                     }
                 }
             }
         }
         .scrollIndicators(.hidden)
+    }
+
+    // MARK: - Testimonials
+
+    private var testimonialScreen: some View {
+        ScrollView {
+            VStack(spacing: 28) {
+                VStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [Theme.goldLight.opacity(0.25), Theme.goldAccent.opacity(0.05)],
+                                    center: .center,
+                                    startRadius: 10,
+                                    endRadius: 60
+                                )
+                            )
+                            .frame(width: 100, height: 100)
+
+                        Image(systemName: "heart.circle.fill")
+                            .font(.system(size: 44))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Theme.goldLight, Theme.goldDark],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .symbolEffect(.breathe)
+                    }
+
+                    Text("Lives Transformed")
+                        .font(.system(size: 28, weight: .bold, design: .serif))
+                        .foregroundStyle(Theme.textDark)
+
+                    Text("See how Sanctuary has touched\nthousands of hearts.")
+                        .font(.system(.subheadline, design: .serif))
+                        .foregroundStyle(Theme.textMedium)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(3)
+                }
+                .padding(.top, 20)
+
+                impactStatsRow
+
+                VStack(spacing: 14) {
+                    testimonialCard(
+                        initials: "S.M.",
+                        name: "Sarah, 28",
+                        text: "I was lost and anxious every day. Sanctuary gave me a rhythm of prayer that completely changed my mornings. I feel peace for the first time in years.",
+                        color: Color(red: 0.55, green: 0.75, blue: 0.65)
+                    )
+
+                    testimonialCard(
+                        initials: "J.R.",
+                        name: "James, 42",
+                        text: "I hadn't opened a Bible in 15 years. The guided scripture readings made it feel approachable again. Now I read every single day.",
+                        color: Color(red: 0.45, green: 0.62, blue: 0.78)
+                    )
+
+                    testimonialCard(
+                        initials: "M.L.",
+                        name: "Maria, 35",
+                        text: "The community prayer wall showed me I'm not alone. Strangers praying for my family — it moved me to tears.",
+                        color: Color(red: 0.65, green: 0.60, blue: 0.80)
+                    )
+                }
+                .padding(.horizontal, 24)
+
+                VStack(spacing: 16) {
+                    Text("How does this make you feel?")
+                        .font(.system(.body, design: .serif))
+                        .fontWeight(.medium)
+                        .foregroundStyle(Theme.textDark)
+
+                    HStack(spacing: 20) {
+                        ForEach(reactionOptions, id: \.symbol) { option in
+                            Button {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                    vm.selectedTestimonialReaction = option.symbol
+                                }
+                            } label: {
+                                VStack(spacing: 6) {
+                                    Text(option.symbol)
+                                        .font(.system(size: 36))
+                                        .scaleEffect(vm.selectedTestimonialReaction == option.symbol ? 1.25 : 1.0)
+
+                                    Text(option.label)
+                                        .font(.system(size: 10, weight: .medium, design: .serif))
+                                        .foregroundStyle(vm.selectedTestimonialReaction == option.symbol ? Theme.textDark : Theme.textLight)
+                                }
+                                .frame(width: 60)
+                                .padding(.vertical, 10)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(vm.selectedTestimonialReaction == option.symbol ? Theme.goldAccent.opacity(0.15) : Color.clear)
+                                        .strokeBorder(vm.selectedTestimonialReaction == option.symbol ? Theme.goldAccent.opacity(0.4) : Color.clear, lineWidth: 1.5)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    if let reaction = vm.selectedTestimonialReaction {
+                        Text(reactionResponse(for: reaction))
+                            .font(.system(.subheadline, design: .serif))
+                            .italic()
+                            .foregroundStyle(Theme.textMedium)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(3)
+                            .padding(.horizontal, 24)
+                            .transition(.asymmetric(
+                                insertion: .scale(scale: 0.95).combined(with: .opacity),
+                                removal: .opacity
+                            ))
+                    }
+                }
+                .padding(.top, 8)
+
+                Spacer(minLength: 100)
+            }
+            .padding(.top, 24)
+            .safeAreaInset(edge: .bottom) {
+                continueButton { vm.nextStep() }
+                    .opacity(vm.canProceed ? 1 : 0.4)
+                    .disabled(!vm.canProceed)
+            }
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private var impactStatsRow: some View {
+        HStack(spacing: 0) {
+            impactStat(value: "47K+", label: "Lives\nTouched", icon: "person.3.fill")
+            impactDivider
+            impactStat(value: "92%", label: "Feel More\nPeaceful", icon: "leaf.fill")
+            impactDivider
+            impactStat(value: "3.2M", label: "Prayers\nShared", icon: "hands.sparkles")
+        }
+        .padding(.vertical, 20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Theme.sandLight.opacity(0.7))
+                .strokeBorder(Theme.goldAccent.opacity(0.15), lineWidth: 1)
+        )
+        .padding(.horizontal, 24)
+    }
+
+    private var impactDivider: some View {
+        Rectangle()
+            .fill(Theme.sandDark.opacity(0.15))
+            .frame(width: 1, height: 50)
+    }
+
+    private func impactStat(value: String, label: String, icon: String) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundStyle(Theme.goldDark)
+
+            Text(value)
+                .font(.system(size: 22, weight: .bold, design: .serif))
+                .foregroundStyle(Theme.textDark)
+
+            Text(label)
+                .font(.system(size: 10, weight: .medium, design: .serif))
+                .foregroundStyle(Theme.textLight)
+                .multilineTextAlignment(.center)
+                .lineSpacing(2)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func testimonialCard(initials: String, name: String, text: String, color: Color) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.2))
+                    .frame(width: 44, height: 44)
+
+                Text(initials)
+                    .font(.system(size: 14, weight: .bold, design: .serif))
+                    .foregroundStyle(color)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(name)
+                    .font(.system(.subheadline, design: .serif))
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Theme.textDark)
+
+                Text("\"\(text)\"")
+                    .font(.system(size: 14, design: .serif))
+                    .italic()
+                    .foregroundStyle(Theme.textMedium)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.4))
+                .strokeBorder(Theme.sandDark.opacity(0.1), lineWidth: 1)
+        )
+    }
+
+    private var reactionOptions: [(symbol: String, label: String)] {
+        [
+            ("\u{1F60A}", "Hopeful"),
+            ("\u{1F62D}", "Moved"),
+            ("\u{2764}\u{FE0F}", "Inspired"),
+            ("\u{1F64F}", "Grateful")
+        ]
+    }
+
+    private func reactionResponse(for symbol: String) -> String {
+        switch symbol {
+        case "\u{1F60A}":
+            return "That hope you feel? It's just the beginning. Your journey is about to grow even deeper."
+        case "\u{1F62D}":
+            return "Tears of compassion are a gift. Your tender heart is exactly what this community needs."
+        case "\u{2764}\u{FE0F}":
+            return "That inspiration is God speaking to you. You're ready for something beautiful."
+        case "\u{1F64F}":
+            return "Gratitude opens every door. You're already walking in the right spirit."
+        default:
+            return "Your heart is in the right place. Let's build your path together."
+        }
     }
 
     // MARK: - Signature
@@ -630,10 +894,10 @@ struct OnboardingView: View {
 
             VStack(spacing: 16) {
                 Button {
-                    onComplete()
+                    vm.triggerCongrats()
                 } label: {
                     HStack(spacing: 10) {
-                        Text("Enter Sanctuary")
+                        Text("Seal My Commitment")
                             .font(.system(.body, design: .serif))
                             .fontWeight(.semibold)
 
@@ -794,6 +1058,299 @@ struct OnboardingView: View {
         )
         .padding(.horizontal, 24)
     }
+
+    // MARK: - Congratulations Overlay
+
+    private var congratulationsOverlay: some View {
+        ZStack {
+            Theme.cream.opacity(0.97)
+                .ignoresSafeArea()
+
+            Canvas { context, size in
+                for seed in particleSeeds {
+                    let point = CGPoint(x: seed.x * size.width, y: seed.y * size.height)
+                    context.opacity = seed.opacity * 0.5
+                    context.fill(
+                        Circle().path(in: CGRect(x: point.x, y: point.y, width: seed.size * 2, height: seed.size * 2)),
+                        with: .color(Theme.goldAccent)
+                    )
+                }
+            }
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                VStack(spacing: 24) {
+                    ZStack {
+                        ForEach(0..<3, id: \.self) { i in
+                            Circle()
+                                .strokeBorder(
+                                    Theme.goldAccent.opacity(vm.congratsAnimated ? 0 : 0.4),
+                                    lineWidth: 2
+                                )
+                                .frame(width: vm.congratsAnimated ? CGFloat(200 + i * 60) : 80,
+                                       height: vm.congratsAnimated ? CGFloat(200 + i * 60) : 80)
+                                .animation(
+                                    .easeOut(duration: 1.5).delay(Double(i) * 0.2),
+                                    value: vm.congratsAnimated
+                                )
+                        }
+
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [Theme.goldLight.opacity(0.4), Theme.goldAccent.opacity(0.1)],
+                                    center: .center,
+                                    startRadius: 20,
+                                    endRadius: 70
+                                )
+                            )
+                            .frame(width: 140, height: 140)
+                            .scaleEffect(vm.congratsAnimated ? 1.0 : 0.3)
+
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 64))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Theme.goldLight, Theme.goldDark],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .scaleEffect(vm.congratsAnimated ? 1.0 : 0.1)
+                            .opacity(vm.congratsAnimated ? 1.0 : 0)
+                    }
+
+                    VStack(spacing: 10) {
+                        Text("Everything is ready,")
+                            .font(.system(size: 18, design: .serif))
+                            .foregroundStyle(Theme.textMedium)
+                            .opacity(vm.congratsAnimated ? 1 : 0)
+                            .offset(y: vm.congratsAnimated ? 0 : 15)
+                            .animation(.spring(response: 0.6).delay(0.4), value: vm.congratsAnimated)
+
+                        Text("\(vm.userName.isEmpty ? "Friend" : vm.userName).")
+                            .font(.system(size: 38, weight: .bold, design: .serif))
+                            .foregroundStyle(Theme.textDark)
+                            .opacity(vm.congratsAnimated ? 1 : 0)
+                            .offset(y: vm.congratsAnimated ? 0 : 15)
+                            .animation(.spring(response: 0.6).delay(0.55), value: vm.congratsAnimated)
+                    }
+
+                    VStack(spacing: 6) {
+                        Text("Your sanctuary is prepared.")
+                            .font(.system(.body, design: .serif))
+                            .foregroundStyle(Theme.textMedium)
+
+                        Text("You are now closer to God.")
+                            .font(.system(.body, design: .serif))
+                            .italic()
+                            .foregroundStyle(Theme.goldDark)
+                    }
+                    .opacity(vm.congratsAnimated ? 1 : 0)
+                    .offset(y: vm.congratsAnimated ? 0 : 20)
+                    .animation(.spring(response: 0.6).delay(0.7), value: vm.congratsAnimated)
+
+                    HStack(spacing: 8) {
+                        Image(systemName: "quote.opening")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Theme.goldAccent)
+
+                        Text("The Lord bless you and keep you.")
+                            .font(.system(.subheadline, design: .serif))
+                            .italic()
+                            .foregroundStyle(Theme.textMedium)
+
+                        Image(systemName: "quote.closing")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Theme.goldAccent)
+                    }
+                    .padding(.top, 8)
+                    .opacity(vm.congratsAnimated ? 1 : 0)
+                    .animation(.spring(response: 0.6).delay(0.9), value: vm.congratsAnimated)
+
+                    Text("— Numbers 6:24")
+                        .font(.system(size: 12, weight: .semibold, design: .serif))
+                        .foregroundStyle(Theme.goldDark)
+                        .opacity(vm.congratsAnimated ? 1 : 0)
+                        .animation(.spring(response: 0.6).delay(1.0), value: vm.congratsAnimated)
+                }
+
+                Spacer()
+
+                Button {
+                    vm.triggerRating()
+                } label: {
+                    HStack(spacing: 10) {
+                        Text("Continue")
+                            .font(.system(.body, design: .serif))
+                            .fontWeight(.semibold)
+
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundStyle(Theme.cream)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Theme.cardBrown, Theme.cardOlive],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                    )
+                }
+                .padding(.horizontal, 32)
+                .opacity(vm.congratsAnimated ? 1 : 0)
+                .animation(.spring(response: 0.5).delay(1.2), value: vm.congratsAnimated)
+                .padding(.bottom, 50)
+            }
+        }
+    }
+
+    // MARK: - Rating Overlay
+
+    private var ratingOverlay: some View {
+        ZStack {
+            Theme.cream.opacity(0.97)
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                VStack(spacing: 28) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [Theme.goldLight.opacity(0.3), Theme.goldAccent.opacity(0.05)],
+                                    center: .center,
+                                    startRadius: 15,
+                                    endRadius: 55
+                                )
+                            )
+                            .frame(width: 110, height: 110)
+
+                        Image(systemName: "star.circle.fill")
+                            .font(.system(size: 52))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Theme.goldLight, Theme.goldDark],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .symbolEffect(.breathe)
+                    }
+
+                    VStack(spacing: 10) {
+                        Text("One last thing...")
+                            .font(.system(size: 16, design: .serif))
+                            .foregroundStyle(Theme.textMedium)
+
+                        Text("Help us reach\nmore souls?")
+                            .font(.system(size: 30, weight: .bold, design: .serif))
+                            .foregroundStyle(Theme.textDark)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(2)
+                    }
+
+                    Text("Your rating helps others discover\ntheir path to God.")
+                        .font(.system(.subheadline, design: .serif))
+                        .foregroundStyle(Theme.textMedium)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(3)
+
+                    HStack(spacing: 12) {
+                        ForEach(1...5, id: \.self) { star in
+                            Button {
+                                withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
+                                    vm.ratingStars = star
+                                }
+                            } label: {
+                                Image(systemName: star <= vm.ratingStars ? "star.fill" : "star")
+                                    .font(.system(size: 38))
+                                    .foregroundStyle(
+                                        star <= vm.ratingStars
+                                        ? AnyShapeStyle(LinearGradient(colors: [Theme.goldLight, Theme.goldDark], startPoint: .top, endPoint: .bottom))
+                                        : AnyShapeStyle(Theme.sandDark.opacity(0.3))
+                                    )
+                                    .scaleEffect(star <= vm.ratingStars ? 1.15 : 1.0)
+                            }
+                            .buttonStyle(.plain)
+                            .sensoryFeedback(.selection, trigger: vm.ratingStars)
+                        }
+                    }
+                    .padding(.vertical, 8)
+
+                    if vm.ratingStars > 0 {
+                        Text(ratingMessage)
+                            .font(.system(.subheadline, design: .serif))
+                            .italic()
+                            .foregroundStyle(Theme.goldDark)
+                            .transition(.scale(scale: 0.95).combined(with: .opacity))
+                    }
+                }
+
+                Spacer()
+
+                VStack(spacing: 14) {
+                    Button {
+                        onComplete()
+                    } label: {
+                        HStack(spacing: 10) {
+                            Text(vm.ratingStars > 0 ? "Enter Sanctuary" : "Enter Sanctuary")
+                                .font(.system(.body, design: .serif))
+                                .fontWeight(.semibold)
+
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .foregroundStyle(Theme.cream)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Theme.cardBrown, Theme.cardOlive],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                        )
+                    }
+                    .padding(.horizontal, 32)
+
+                    Button {
+                        onComplete()
+                    } label: {
+                        Text("Maybe later")
+                            .font(.system(.subheadline, design: .serif))
+                            .foregroundStyle(Theme.textLight)
+                    }
+                }
+                .padding(.bottom, 50)
+            }
+        }
+    }
+
+    private var ratingMessage: String {
+        switch vm.ratingStars {
+        case 1: return "We'll do better for you."
+        case 2: return "Thank you for your honesty."
+        case 3: return "We're glad you're here."
+        case 4: return "Wonderful — thank you!"
+        case 5: return "God bless you! \u{2728}"
+        default: return ""
+        }
+    }
+
+    // MARK: - Reusable Components
 
     private func continueButton(title: String = "Continue", action: @escaping () -> Void) -> some View {
         Button(action: action) {
