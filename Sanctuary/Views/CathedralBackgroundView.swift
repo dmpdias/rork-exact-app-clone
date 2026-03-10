@@ -18,17 +18,22 @@ struct CathedralBackgroundView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.12, green: 0.10, blue: 0.08),
-                    Color(red: 0.20, green: 0.17, blue: 0.13),
-                    Color(red: 0.28, green: 0.24, blue: 0.18),
-                    Color(red: 0.22, green: 0.18, blue: 0.14)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            Color(red: 0.12, green: 0.10, blue: 0.08)
+                .ignoresSafeArea()
+
+            GeometryReader { geo in
+                Image("CathedralBG")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+                    .blur(radius: 3 * (1.0 - glowIntensity * 0.4))
+            }
             .ignoresSafeArea()
+
+            Color(red: 0.10, green: 0.08, blue: 0.06)
+                .opacity(0.55)
+                .ignoresSafeArea()
 
             RadialGradient(
                 colors: [
@@ -39,17 +44,6 @@ struct CathedralBackgroundView: View {
                 center: .init(x: 0.5, y: 0.3),
                 startRadius: 40,
                 endRadius: 300
-            )
-            .ignoresSafeArea()
-
-            LinearGradient(
-                colors: [
-                    Color(red: 0.94, green: 0.90, blue: 0.84).opacity(0.06),
-                    Color(red: 0.94, green: 0.90, blue: 0.84).opacity(0.03),
-                    Color.clear
-                ],
-                startPoint: .top,
-                endPoint: .center
             )
             .ignoresSafeArea()
 
