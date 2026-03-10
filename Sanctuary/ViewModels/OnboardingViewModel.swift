@@ -27,6 +27,8 @@ class OnboardingViewModel {
 
     let totalSteps: Int = 5
     var showCountryPicker: Bool = false
+    var isPreparingInsight: Bool = false
+    var preparingText: String = ""
 
     var progress: Double {
         Double(currentStep) / Double(totalSteps + 1)
@@ -53,14 +55,36 @@ class OnboardingViewModel {
 
     func nextStep() {
         if currentStep >= 1 && currentStep <= 3 && !showInsight {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                showInsight = true
+            let prepText: String
+            switch currentStep {
+            case 1: prepText = "Preparing your path..."
+            case 3: prepText = "Reflecting on your heart..."
+            default: prepText = ""
+            }
+
+            if !prepText.isEmpty {
+                preparingText = prepText
+                withAnimation(.spring(response: 0.4)) {
+                    isPreparingInsight = true
+                }
+                Task {
+                    try? await Task.sleep(for: .seconds(1.2))
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        isPreparingInsight = false
+                        showInsight = true
+                    }
+                }
+            } else {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    showInsight = true
+                }
             }
             return
         }
 
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+        withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) {
             showInsight = false
+            isPreparingInsight = false
             currentStep += 1
         }
     }
@@ -109,7 +133,7 @@ class OnboardingViewModel {
         switch currentStep {
         case 1:
             return selectedCountry?.communityInsight(age: selectedAge, gender: selectedGender)
-        case 2: return selectedSpiritualStyle != nil ? "All paths lead to Christ. You're welcome here." : nil
+        case 2: return selectedSpiritualStyle != nil ? "All paths lead to Christ. Every room in His house is yours." : nil
         case 3: return faithPracticeInsight
         default: return nil
         }
@@ -119,10 +143,10 @@ class OnboardingViewModel {
         guard let prayer = selectedPrayerFrequency, let scripture = selectedScriptureFrequency else { return nil }
         let isBeginning = (prayer == .rarely && (scripture == .never || scripture == .occasionally)) || ((prayer == .rarely || prayer == .weekly) && scripture == .never)
         if isBeginning {
-            return "Perfect starting point. We'll grow together, step by step."
+            return "A beautiful beginning. Grace meets you exactly where you are."
         }
         if prayer == .daily || prayer == .multiple || scripture == .daily {
-            return "Your consistency is beautiful. Let's deepen it."
+            return "Your faithfulness is a gift. Let us help you go deeper."
         }
         return prayer.insight(for: selectedAge)
     }
@@ -135,25 +159,25 @@ class OnboardingViewModel {
         case .traditional:
             commitments.append(PlanCommitment(
                 icon: "building.columns.fill",
-                title: "Daily Rosary Guidance",
+                title: "The Holy Rosary, guided daily",
                 description: "Walk through the mysteries each day with Father Anthony"
             ))
         case .progressive:
             commitments.append(PlanCommitment(
                 icon: "hands.sparkles",
-                title: "Morning Prayer for Mercy",
+                title: "Morning prayers for mercy and the world",
                 description: "Start each day with prayers for mercy and justice with Sister Ana"
             ))
         case .contemporary:
             commitments.append(PlanCommitment(
                 icon: "sparkles",
-                title: "5-Minute Daily Check-ins",
-                description: "Quick, honest conversations about faith with Brother Miguel"
+                title: "Five sacred minutes, every day",
+                description: "Honest conversations about faith with Brother Miguel"
             ))
         case .intellectual:
             commitments.append(PlanCommitment(
                 icon: "book.closed.fill",
-                title: "Deep Scripture Study",
+                title: "Into the depths of the Word",
                 description: "Explore theology and philosophy of the Word with Professor Peter"
             ))
         }
@@ -163,34 +187,34 @@ class OnboardingViewModel {
             case .rarely:
                 commitments.append(PlanCommitment(
                     icon: "bell.fill",
-                    title: "Gentle Reminders",
-                    description: "Build your rhythm with kind nudges to pause and pray"
+                    title: "Gentle invitations to pause and pray",
+                    description: "Build your rhythm with kind nudges throughout the day"
                 ))
             case .weekly:
                 commitments.append(PlanCommitment(
                     icon: "calendar.badge.clock",
-                    title: "Structure Your Practice",
-                    description: "A weekly framework to deepen and anchor your prayer life"
+                    title: "A rhythm for your prayer life",
+                    description: "A weekly framework to deepen and anchor your practice"
                 ))
             case .daily, .multiple:
                 commitments.append(PlanCommitment(
                     icon: "flame.fill",
-                    title: "Advanced Reflections",
+                    title: "Contemplative depths for your soul",
                     description: "Enrich your devotion with contemplative and intercessory prayers"
                 ))
             }
         } else {
             commitments.append(PlanCommitment(
                 icon: "bell.fill",
-                title: "Gentle Reminders",
-                description: "Build your rhythm with kind nudges to pause and pray"
+                title: "Gentle invitations to pause and pray",
+                description: "Build your rhythm with kind nudges throughout the day"
             ))
         }
 
         let countryName = selectedCountry?.rawValue ?? "your country"
         commitments.append(PlanCommitment(
             icon: "person.3.fill",
-            title: "Join Catholics in \(countryName)",
+            title: "Pray alongside the faithful in \(countryName)",
             description: "Connect with believers near you praying together every day"
         ))
 

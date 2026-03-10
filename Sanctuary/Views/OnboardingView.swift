@@ -6,6 +6,9 @@ struct OnboardingView: View {
     @State private var particleSeeds: [ParticleSeed] = (0..<30).map { _ in
         ParticleSeed(x: Double.random(in: 0...1), y: Double.random(in: 0...1), size: Double.random(in: 2...5), opacity: Double.random(in: 0.1...0.3))
     }
+    @State private var flameFlicker: Bool = false
+    @State private var planRevealed: Bool = false
+    @State private var planNodeRevealCount: Int = 0
     var onComplete: () -> Void
     var onShowLogin: () -> Void
 
@@ -27,7 +30,7 @@ struct OnboardingView: View {
                     signatureScreen.tag(5)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .animation(.spring(response: 0.5, dampingFraction: 0.85), value: vm.currentStep)
+                .animation(.spring(response: 0.55, dampingFraction: 0.82), value: vm.currentStep)
                 .allowsHitTesting(!vm.showCongrats && !vm.showRating)
             }
 
@@ -83,6 +86,7 @@ struct OnboardingView: View {
                     .foregroundStyle(Theme.textMedium)
                     .frame(width: 44, height: 44)
             }
+            .sensoryFeedback(.selection, trigger: vm.currentStep)
 
             Spacer()
 
@@ -91,6 +95,7 @@ struct OnboardingView: View {
                     Capsule()
                         .fill(step <= vm.currentStep ? Theme.goldAccent : Theme.sandDark.opacity(0.2))
                         .frame(width: step == vm.currentStep ? 24 : 8, height: 4)
+                        .shadow(color: step == vm.currentStep ? Theme.goldAccent.opacity(0.4) : .clear, radius: 4)
                         .animation(.spring(response: 0.3), value: vm.currentStep)
                 }
             }
@@ -131,15 +136,21 @@ struct OnboardingView: View {
                                 endPoint: .bottom
                             )
                         )
-                        .symbolEffect(.breathe)
+                        .scaleEffect(flameFlicker ? 1.03 : 0.97)
+                        .opacity(flameFlicker ? 1.0 : 0.85)
+                        .animation(
+                            .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
+                            value: flameFlicker
+                        )
                 }
+                .onAppear { flameFlicker = true }
 
                 VStack(spacing: 12) {
                     Text("Amave")
                         .font(.system(size: 42, weight: .bold, design: .serif))
                         .foregroundStyle(Theme.textDark)
 
-                    Text("Your daily companion for\nCatholic life")
+                    Text("Your sacred companion for\nthe Catholic life")
                         .font(.system(size: 18, design: .serif))
                         .italic()
                         .foregroundStyle(Theme.textMedium)
@@ -147,7 +158,7 @@ struct OnboardingView: View {
                         .lineSpacing(4)
                 }
 
-                Text("Walk with us in faith.\nNo judgment, just accompaniment.")
+                Text("Walk with us in grace.\nNo judgment \u{2014} only accompaniment.")
                     .font(.system(.subheadline, design: .serif))
                     .foregroundStyle(Theme.textLight)
                     .multilineTextAlignment(.center)
@@ -174,12 +185,12 @@ struct OnboardingView: View {
                 .padding(.horizontal, 32)
 
                 Button {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                    withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) {
                         vm.currentStep = 1
                     }
                 } label: {
                     HStack(spacing: 10) {
-                        Text("Begin Your Journey")
+                        Text("Enter the Sanctuary")
                             .font(.system(.body, design: .serif))
                             .fontWeight(.semibold)
 
@@ -200,6 +211,7 @@ struct OnboardingView: View {
                             )
                     )
                 }
+                .sensoryFeedback(.impact(flexibility: .soft), trigger: vm.currentStep)
                 .padding(.horizontal, 32)
 
                 Button {
@@ -215,7 +227,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - About You (Name, Age, Gender, Country)
+    // MARK: - About You
 
     private var aboutYouScreen: some View {
         ScrollView {
@@ -227,10 +239,17 @@ struct OnboardingView: View {
                         .padding(.horizontal, 24)
 
                     questionHeader(
-                        label: "GETTING TO KNOW YOU",
-                        title: "Tell us about\nyourself.",
-                        subtitle: "This helps us personalize your journey."
+                        label: "BEFORE WE BEGIN",
+                        title: "Let us know who\nwe walk beside.",
+                        subtitle: "So we may prepare a path that speaks to your heart."
                     )
+
+                    Text("Every soul has a name, a story, and a home. Yours matters to us.")
+                        .font(.system(size: 13, design: .serif))
+                        .italic()
+                        .foregroundStyle(Theme.textLight)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 4)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -262,7 +281,7 @@ struct OnboardingView: View {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                         ForEach(AgeRange.allCases) { age in
                             Button {
-                                withAnimation(.spring(response: 0.3)) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                                     vm.selectedAge = age
                                 }
                             } label: {
@@ -282,6 +301,7 @@ struct OnboardingView: View {
                                     )
                             }
                             .buttonStyle(.plain)
+                            .sensoryFeedback(.selection, trigger: vm.selectedAge)
                         }
                     }
                     .padding(.horizontal, 24)
@@ -297,7 +317,7 @@ struct OnboardingView: View {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                         ForEach(Gender.allCases) { gender in
                             Button {
-                                withAnimation(.spring(response: 0.3)) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                                     vm.selectedGender = gender
                                 }
                             } label: {
@@ -329,6 +349,7 @@ struct OnboardingView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .sensoryFeedback(.selection, trigger: vm.selectedGender)
                         }
                     }
                     .padding(.horizontal, 24)
@@ -377,6 +398,11 @@ struct OnboardingView: View {
                     .padding(.horizontal, 24)
                 }
 
+                if vm.isPreparingInsight {
+                    preparingInsightView(vm.preparingText)
+                        .transition(.opacity)
+                }
+
                 if vm.showInsight, let insight = vm.currentInsight {
                     insightCard(insight)
                         .transition(.asymmetric(
@@ -394,7 +420,7 @@ struct OnboardingView: View {
                         .opacity(vm.canProceed ? 1 : 0.4)
                         .disabled(!vm.canProceed)
 
-                    Text("Next: Discover your spiritual style")
+                    Text("Next: Your way of living the faith")
                         .font(.system(size: 12, design: .serif))
                         .italic()
                         .foregroundStyle(Theme.textLight)
@@ -459,13 +485,19 @@ struct OnboardingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 questionHeader(
-                    label: "YOUR SPIRITUAL PATH",
-                    title: "How do you connect\nwith your faith?",
-                    subtitle: "This helps us personalize everything."
+                    label: "YOUR WAY OF FAITH",
+                    title: "How does the Spirit\nmove in your life?",
+                    subtitle: "There are many rooms in the Father\u{2019}s house.\nWhich one calls to you?"
                 )
 
+                Text("This shapes your daily prayers, reflections, and the voice of your spiritual guide.")
+                    .font(.system(size: 13, design: .serif))
+                    .italic()
+                    .foregroundStyle(Theme.textLight)
+                    .padding(.horizontal, 24)
+
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    ForEach(SpiritualStyle.allCases) { style in
+                    ForEach(Array(SpiritualStyle.allCases.enumerated()), id: \.element.id) { index, style in
                         Button {
                             withAnimation(.spring(response: 0.3)) {
                                 vm.selectedSpiritualStyle = style
@@ -475,6 +507,7 @@ struct OnboardingView: View {
                             spiritualStyleCard(style)
                         }
                         .buttonStyle(.plain)
+                        .sensoryFeedback(.selection, trigger: vm.selectedSpiritualStyle)
                     }
                 }
                 .padding(.horizontal, 24)
@@ -499,9 +532,10 @@ struct OnboardingView: View {
                     )
                     .padding(.horizontal, 24)
                     .transition(.asymmetric(
-                        insertion: .scale(scale: 0.95).combined(with: .opacity),
+                        insertion: .move(edge: .bottom).combined(with: .opacity),
                         removal: .opacity
                     ))
+                    .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.5), trigger: vm.selectedSpiritualStyle)
                 }
 
                 if vm.showInsight, let insight = vm.currentInsight {
@@ -557,11 +591,12 @@ struct OnboardingView: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(isSelected ? Theme.goldAccent.opacity(0.06) : Theme.sandLight.opacity(0.4))
                 .strokeBorder(isSelected ? Theme.goldAccent.opacity(0.5) : Theme.sandDark.opacity(0.1), lineWidth: isSelected ? 2 : 1)
+                .shadow(color: isSelected ? Theme.goldAccent.opacity(0.2) : .clear, radius: 8)
         )
         .scaleEffect(isSelected ? 1.02 : 1.0)
     }
 
-    // MARK: - Faith Practice (Prayer + Scripture merged)
+    // MARK: - Faith Practice
 
     private var faithPracticeScreen: some View {
         ScrollView {
@@ -573,10 +608,17 @@ struct OnboardingView: View {
                         .padding(.horizontal, 24)
 
                     questionHeader(
-                        label: "YOUR FAITH PRACTICE",
-                        title: "Prayer & Scripture",
-                        subtitle: "Two pillars of a faithful life. Where are you today?"
+                        label: "YOUR LIFE OF PRAYER",
+                        title: "Prayer & the Word",
+                        subtitle: "Two pillars of the Catholic life. Where is your heart today?"
                     )
+
+                    Text("This helps us know when and how to invite you to prayer \u{2014} never to overwhelm, always to accompany.")
+                        .font(.system(size: 13, design: .serif))
+                        .italic()
+                        .foregroundStyle(Theme.textLight)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 4)
                 }
 
                 VStack(alignment: .leading, spacing: 10) {
@@ -586,7 +628,7 @@ struct OnboardingView: View {
                         .foregroundStyle(Theme.textLight)
                         .padding(.horizontal, 24)
 
-                    Text("How often do you talk to God? Whether it's a morning offering, a quick prayer before meals, or a full Rosary — every conversation counts.")
+                    Text("Whether it\u{2019}s the morning Angelus, a quiet Rosary, or a whispered intention before sleep \u{2014} every word reaches Him.")
                         .font(.system(size: 14, design: .serif))
                         .foregroundStyle(Theme.textMedium)
                         .lineSpacing(3)
@@ -607,19 +649,20 @@ struct OnboardingView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .sensoryFeedback(.selection, trigger: vm.selectedPrayerFrequency)
                         }
                     }
                     .padding(.horizontal, 24)
                 }
 
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("SCRIPTURE READING")
+                    Text("THE WORD IN YOUR LIFE")
                         .font(.system(size: 11, weight: .semibold))
                         .tracking(1.5)
                         .foregroundStyle(Theme.textLight)
                         .padding(.horizontal, 24)
 
-                    Text("How often do you open the Bible? From daily Gospel readings to occasional study — we'll match your pace with the right passages.")
+                    Text("From the daily Gospel at Mass to lectio divina at home \u{2014} the Word is living and active. We\u{2019}ll match your rhythm.")
                         .font(.system(size: 14, design: .serif))
                         .foregroundStyle(Theme.textMedium)
                         .lineSpacing(3)
@@ -640,9 +683,15 @@ struct OnboardingView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .sensoryFeedback(.selection, trigger: vm.selectedScriptureFrequency)
                         }
                     }
                     .padding(.horizontal, 24)
+                }
+
+                if vm.isPreparingInsight {
+                    preparingInsightView(vm.preparingText)
+                        .transition(.opacity)
                 }
 
                 if vm.showInsight, let insight = vm.currentInsight {
@@ -678,7 +727,7 @@ struct OnboardingView: View {
                         .foregroundStyle(Theme.goldDark)
                         .padding(.horizontal, 24)
 
-                    Text("YOUR PERSONALIZED PATH")
+                    Text("YOUR COVENANT")
                         .font(.system(size: 11, weight: .semibold))
                         .tracking(2)
                         .foregroundStyle(Theme.goldDark)
@@ -711,91 +760,124 @@ struct OnboardingView: View {
                             .symbolEffect(.breathe)
                     }
 
-                    Text("\(plan.userName),\nhere's your personalized path")
+                    Text("\(plan.userName),\nyour path has been prepared")
                         .font(.system(size: 28, weight: .bold, design: .serif))
                         .foregroundStyle(Theme.textDark)
                         .multilineTextAlignment(.center)
                         .lineSpacing(2)
 
-                    Text("Based on your \(plan.spiritualStyle.rawValue) style")
+                    Text("In the tradition of \(plan.spiritualStyle.rawValue) faith")
                         .font(.system(.subheadline, design: .serif))
                         .italic()
                         .foregroundStyle(Theme.textMedium)
                 }
 
-                VStack(spacing: 0) {
-                    ForEach(Array(plan.commitments.enumerated()), id: \.element.id) { index, commitment in
-                        HStack(alignment: .top, spacing: 16) {
-                            VStack(spacing: 0) {
-                                ZStack {
-                                    Circle()
-                                        .fill(Theme.goldAccent.opacity(0.15))
-                                        .frame(width: 44, height: 44)
-
-                                    Image(systemName: commitment.icon)
-                                        .font(.system(size: 18))
-                                        .foregroundStyle(Theme.goldDark)
+                if !planRevealed {
+                    preparingInsightView("Weaving your covenant...")
+                        .onAppear {
+                            Task {
+                                try? await Task.sleep(for: .seconds(1.5))
+                                withAnimation(.spring(response: 0.6)) {
+                                    planRevealed = true
                                 }
-
-                                if index < plan.commitments.count - 1 {
-                                    Rectangle()
-                                        .fill(Theme.goldAccent.opacity(0.2))
-                                        .frame(width: 2)
-                                        .frame(maxHeight: .infinity)
+                                for i in 0..<plan.commitments.count {
+                                    try? await Task.sleep(for: .seconds(0.4))
+                                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                        planNodeRevealCount = i + 1
+                                    }
                                 }
                             }
+                        }
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(Array(plan.commitments.enumerated()), id: \.element.id) { index, commitment in
+                            if index < planNodeRevealCount {
+                                HStack(alignment: .top, spacing: 16) {
+                                    VStack(spacing: 0) {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Theme.goldAccent.opacity(0.15))
+                                                .frame(width: 44, height: 44)
 
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(commitment.title)
-                                    .font(.system(.body, design: .serif))
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(Theme.textDark)
+                                            Image(systemName: commitment.icon)
+                                                .font(.system(size: 18))
+                                                .foregroundStyle(Theme.goldDark)
+                                        }
 
-                                Text(commitment.description)
-                                    .font(.system(.subheadline, design: .serif))
-                                    .foregroundStyle(Theme.textMedium)
-                                    .lineSpacing(2)
+                                        if index < plan.commitments.count - 1 {
+                                            Rectangle()
+                                                .fill(Theme.goldAccent.opacity(0.2))
+                                                .frame(width: 2)
+                                                .frame(maxHeight: .infinity)
+                                        }
+                                    }
+
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(commitment.title)
+                                            .font(.system(.body, design: .serif))
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(Theme.textDark)
+
+                                        Text(commitment.description)
+                                            .font(.system(.subheadline, design: .serif))
+                                            .foregroundStyle(Theme.textMedium)
+                                            .lineSpacing(2)
+                                    }
+                                    .padding(.bottom, index < plan.commitments.count - 1 ? 24 : 0)
+
+                                    Spacer()
+                                }
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .bottom).combined(with: .opacity),
+                                    removal: .opacity
+                                ))
                             }
-                            .padding(.bottom, index < plan.commitments.count - 1 ? 24 : 0)
-
-                            Spacer()
                         }
                     }
-                }
-                .padding(24)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Theme.sandLight.opacity(0.7))
-                        .strokeBorder(Theme.goldAccent.opacity(0.2), lineWidth: 1)
-                )
-                .padding(.horizontal, 24)
+                    .padding(24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Theme.sandLight.opacity(0.7))
+                            .strokeBorder(Theme.goldAccent.opacity(0.2), lineWidth: 1)
+                    )
+                    .padding(.horizontal, 24)
+                    .sensoryFeedback(.success, trigger: planNodeRevealCount == plan.commitments.count)
 
-                VStack(spacing: 10) {
-                    Text("\"" + plan.verse + "\"")
-                        .font(.system(.subheadline, design: .serif))
-                        .italic()
-                        .foregroundStyle(Theme.textMedium)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(3)
+                    VStack(spacing: 10) {
+                        Text("\u{201C}" + plan.verse + "\u{201D}")
+                            .font(.system(.subheadline, design: .serif))
+                            .italic()
+                            .foregroundStyle(Theme.textMedium)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(3)
 
-                    Text("— " + plan.verseReference)
-                        .font(.system(size: 12, weight: .semibold, design: .serif))
-                        .foregroundStyle(Theme.goldDark)
+                        Text("\u{2014} " + plan.verseReference)
+                            .font(.system(size: 12, weight: .semibold, design: .serif))
+                            .foregroundStyle(Theme.goldDark)
+                    }
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 16)
+                    .opacity(planNodeRevealCount >= plan.commitments.count ? 1 : 0)
+                    .animation(.easeIn(duration: 0.5), value: planNodeRevealCount)
                 }
-                .padding(.horizontal, 32)
-                .padding(.vertical, 16)
 
                 Spacer(minLength: 100)
             }
             .safeAreaInset(edge: .bottom) {
-                continueButton(title: "Sign Your Commitment") {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                continueButton(title: "Seal Your Covenant") {
+                    withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) {
                         vm.currentStep = 5
                     }
                 }
+                .opacity(planRevealed && planNodeRevealCount >= plan.commitments.count ? 1 : 0.4)
+                .disabled(!planRevealed || planNodeRevealCount < plan.commitments.count)
             }
         }
         .scrollIndicators(.hidden)
+        .onAppear {
+            planRevealed = false
+            planNodeRevealCount = 0
+        }
     }
 
     // MARK: - Signature
@@ -813,11 +895,17 @@ struct OnboardingView: View {
                     .font(.system(size: 28, weight: .bold, design: .serif))
                     .foregroundStyle(Theme.textDark)
 
-                Text("Sign below to commit to your\npersonalized spiritual journey.")
+                Text("Place your mark below \u{2014} a covenant\nbetween you and the path ahead.")
                     .font(.system(.subheadline, design: .serif))
                     .foregroundStyle(Theme.textMedium)
                     .multilineTextAlignment(.center)
                     .lineSpacing(3)
+
+                Text("A covenant is a sacred promise. Take your time.")
+                    .font(.system(size: 13, design: .serif))
+                    .italic()
+                    .foregroundStyle(Theme.textLight)
+                    .padding(.top, 2)
             }
 
             Spacer().frame(height: 32)
@@ -844,7 +932,7 @@ struct OnboardingView: View {
             .background(
                 RoundedRectangle(cornerRadius: 20)
                     .fill(Color.white.opacity(0.5))
-                    .strokeBorder(Theme.sandDark.opacity(0.2), lineWidth: 1)
+                    .strokeBorder(vm.hasSigned ? Theme.goldAccent.opacity(0.3) : Theme.sandDark.opacity(0.2), lineWidth: 1)
             )
             .padding(.horizontal, 32)
 
@@ -855,7 +943,7 @@ struct OnboardingView: View {
                     vm.triggerCongrats()
                 } label: {
                     HStack(spacing: 10) {
-                        Text("Seal My Commitment")
+                        Text("Amen. I commit.")
                             .font(.system(.body, design: .serif))
                             .fontWeight(.semibold)
 
@@ -879,9 +967,10 @@ struct OnboardingView: View {
                 .disabled(!vm.hasSigned)
                 .padding(.horizontal, 32)
                 .animation(.spring(response: 0.3), value: vm.hasSigned)
+                .sensoryFeedback(.impact(weight: .heavy), trigger: vm.showCongrats)
 
                 if !vm.hasSigned {
-                    Text("Use your finger to sign above")
+                    Text("Your signature seals this sacred moment")
                         .font(.system(size: 13, design: .serif))
                         .italic()
                         .foregroundStyle(Theme.textLight)
@@ -941,6 +1030,7 @@ struct OnboardingView: View {
                     Circle()
                         .fill(Theme.goldAccent)
                         .frame(width: 14, height: 14)
+                        .transition(.scale.combined(with: .opacity))
                 }
             }
         }
@@ -951,6 +1041,8 @@ struct OnboardingView: View {
                 .fill(isSelected ? Theme.sandLight : Theme.sandLight.opacity(0.4))
                 .strokeBorder(isSelected ? Theme.goldAccent.opacity(0.3) : Theme.sandDark.opacity(0.1), lineWidth: 1)
         )
+        .scaleEffect(isSelected ? 1.01 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
     }
 
     private func insightCard(_ text: String) -> some View {
@@ -988,6 +1080,26 @@ struct OnboardingView: View {
         .padding(.horizontal, 24)
     }
 
+    private func preparingInsightView(_ text: String) -> some View {
+        HStack(spacing: 12) {
+            ProgressView()
+                .tint(Theme.goldDark)
+
+            Text(text)
+                .font(.system(.subheadline, design: .serif))
+                .italic()
+                .foregroundStyle(Theme.goldDark)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Theme.goldAccent.opacity(0.06))
+                .strokeBorder(Theme.goldAccent.opacity(0.15), lineWidth: 1)
+        )
+        .padding(.horizontal, 24)
+    }
+
     // MARK: - Congratulations Overlay
 
     private var congratulationsOverlay: some View {
@@ -1014,12 +1126,23 @@ struct OnboardingView: View {
                     ZStack {
                         ForEach(0..<3, id: \.self) { i in
                             Circle()
-                                .strokeBorder(
-                                    Theme.goldAccent.opacity(vm.congratsAnimated ? 0 : 0.4),
-                                    lineWidth: 2
+                                .fill(
+                                    RadialGradient(
+                                        colors: [Theme.goldAccent.opacity(vm.congratsAnimated ? 0 : 0.15), Theme.goldAccent.opacity(0)],
+                                        center: .center,
+                                        startRadius: 20,
+                                        endRadius: CGFloat(100 + i * 30)
+                                    )
                                 )
                                 .frame(width: vm.congratsAnimated ? CGFloat(200 + i * 60) : 80,
                                        height: vm.congratsAnimated ? CGFloat(200 + i * 60) : 80)
+                                .overlay(
+                                    Circle()
+                                        .strokeBorder(
+                                            Theme.goldAccent.opacity(vm.congratsAnimated ? 0 : 0.4),
+                                            lineWidth: 2
+                                        )
+                                )
                                 .animation(
                                     .easeOut(duration: 1.5).delay(Double(i) * 0.2),
                                     value: vm.congratsAnimated
@@ -1048,11 +1171,13 @@ struct OnboardingView: View {
                                 )
                             )
                             .scaleEffect(vm.congratsAnimated ? 1.0 : 0.1)
+                            .rotationEffect(.degrees(vm.congratsAnimated ? 5 : 0))
                             .opacity(vm.congratsAnimated ? 1.0 : 0)
                     }
+                    .sensoryFeedback(.success, trigger: vm.congratsAnimated)
 
                     VStack(spacing: 10) {
-                        Text("Everything is ready,")
+                        Text("It is finished.")
                             .font(.system(size: 18, design: .serif))
                             .foregroundStyle(Theme.textMedium)
                             .opacity(vm.congratsAnimated ? 1 : 0)
@@ -1068,18 +1193,18 @@ struct OnboardingView: View {
                     }
 
                     VStack(spacing: 6) {
-                        Text("Your journey is prepared.")
+                        Text("Your sanctuary awaits.")
                             .font(.system(.body, design: .serif))
                             .foregroundStyle(Theme.textMedium)
 
-                        Text("You are now closer to God.")
+                        Text("You are already closer to God.")
                             .font(.system(.body, design: .serif))
                             .italic()
                             .foregroundStyle(Theme.goldDark)
                     }
                     .opacity(vm.congratsAnimated ? 1 : 0)
                     .offset(y: vm.congratsAnimated ? 0 : 20)
-                    .animation(.spring(response: 0.6).delay(0.7), value: vm.congratsAnimated)
+                    .animation(.spring(response: 0.6).delay(0.85), value: vm.congratsAnimated)
 
                     HStack(spacing: 8) {
                         Image(systemName: "quote.opening")
@@ -1097,13 +1222,13 @@ struct OnboardingView: View {
                     }
                     .padding(.top, 8)
                     .opacity(vm.congratsAnimated ? 1 : 0)
-                    .animation(.spring(response: 0.6).delay(0.9), value: vm.congratsAnimated)
+                    .animation(.spring(response: 0.6).delay(1.05), value: vm.congratsAnimated)
 
-                    Text("— Numbers 6:24")
+                    Text("\u{2014} Numbers 6:24")
                         .font(.system(size: 12, weight: .semibold, design: .serif))
                         .foregroundStyle(Theme.goldDark)
                         .opacity(vm.congratsAnimated ? 1 : 0)
-                        .animation(.spring(response: 0.6).delay(1.0), value: vm.congratsAnimated)
+                        .animation(.spring(response: 0.6).delay(1.15), value: vm.congratsAnimated)
                 }
 
                 Spacer()
@@ -1135,7 +1260,7 @@ struct OnboardingView: View {
                 }
                 .padding(.horizontal, 32)
                 .opacity(vm.congratsAnimated ? 1 : 0)
-                .animation(.spring(response: 0.5).delay(1.2), value: vm.congratsAnimated)
+                .animation(.spring(response: 0.5).delay(1.3), value: vm.congratsAnimated)
                 .padding(.bottom, 50)
             }
         }
@@ -1177,18 +1302,18 @@ struct OnboardingView: View {
                     }
 
                     VStack(spacing: 10) {
-                        Text("One last thing...")
+                        Text("Before you enter...")
                             .font(.system(size: 16, design: .serif))
                             .foregroundStyle(Theme.textMedium)
 
-                        Text("Help us reach\nmore souls?")
+                        Text("Help others find\ntheir way home?")
                             .font(.system(size: 30, weight: .bold, design: .serif))
                             .foregroundStyle(Theme.textDark)
                             .multilineTextAlignment(.center)
                             .lineSpacing(2)
                     }
 
-                    Text("Your rating helps others discover\ntheir path to God.")
+                    Text("A moment of your grace helps another\nsoul find this sanctuary.")
                         .font(.system(.subheadline, design: .serif))
                         .foregroundStyle(Theme.textMedium)
                         .multilineTextAlignment(.center)
@@ -1197,7 +1322,7 @@ struct OnboardingView: View {
                     HStack(spacing: 12) {
                         ForEach(1...5, id: \.self) { star in
                             Button {
-                                withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
+                                withAnimation(.spring(response: 0.25, dampingFraction: 0.5).delay(Double(star - 1) * 0.1)) {
                                     vm.ratingStars = star
                                 }
                             } label: {
@@ -1232,7 +1357,7 @@ struct OnboardingView: View {
                         onComplete()
                     } label: {
                         HStack(spacing: 10) {
-                            Text("Enter Amave")
+                            Text("Enter Your Sanctuary")
                                 .font(.system(.body, design: .serif))
                                 .fontWeight(.semibold)
 
@@ -1270,11 +1395,11 @@ struct OnboardingView: View {
 
     private var ratingMessage: String {
         switch vm.ratingStars {
-        case 1: return "We'll do better for you."
+        case 1: return "We hear you. We\u{2019}ll do better."
         case 2: return "Thank you for your honesty."
-        case 3: return "We're glad you're here."
-        case 4: return "Wonderful — thank you!"
-        case 5: return "God bless you! \u{2728}"
+        case 3: return "Thank you. We\u{2019}re glad you\u{2019}re here."
+        case 4: return "Your kindness is a blessing."
+        case 5: return "Deo gratias."
         default: return ""
         }
     }

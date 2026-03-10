@@ -114,10 +114,10 @@ nonisolated enum UserCountry: String, CaseIterable, Identifiable, Codable, Senda
 }
 
 nonisolated enum PrayerFrequency: String, CaseIterable, Identifiable, Codable, Sendable {
-    case rarely = "Rarely"
-    case weekly = "A few times a week"
-    case daily = "Once a day"
-    case multiple = "Multiple times a day"
+    case rarely = "I'm finding my way back"
+    case weekly = "When the moment calls"
+    case daily = "Part of my daily rhythm"
+    case multiple = "The Liturgy of the Hours, and more"
 
     var id: String { rawValue }
 
@@ -145,10 +145,10 @@ nonisolated enum PrayerFrequency: String, CaseIterable, Identifiable, Codable, S
 }
 
 nonisolated enum ScriptureFrequency: String, CaseIterable, Identifiable, Codable, Sendable {
-    case never = "Not yet"
-    case occasionally = "Occasionally"
-    case weekly = "A few times a week"
-    case daily = "Every day"
+    case never = "I haven't started yet"
+    case occasionally = "When it speaks to me"
+    case weekly = "Regular reading"
+    case daily = "Daily — the Word is my bread"
 
     var id: String { rawValue }
 
@@ -313,19 +313,19 @@ nonisolated enum SpiritualStyle: String, CaseIterable, Identifiable, Codable, Se
 
     var subtitle: String {
         switch self {
-        case .traditional: return "Liturgy, tradition, and 2000 years of Church wisdom"
-        case .progressive: return "Mercy, inclusion, and Pope Francis's vision"
-        case .contemporary: return "Practical faith for everyday life, no filters"
-        case .intellectual: return "Theology, philosophy, and deep questions"
+        case .traditional: return "The Liturgy, Sacred Tradition, and the wisdom of the Saints"
+        case .progressive: return "Mercy, justice, and the living spirit of Vatican II"
+        case .contemporary: return "Faith woven into the fabric of everyday life"
+        case .intellectual: return "Theology, philosophy, and the great questions of the soul"
         }
     }
 
     var guideName: String {
         switch self {
-        case .traditional: return "Father Anthony will guide you"
-        case .progressive: return "Sister Ana will guide you"
-        case .contemporary: return "Brother Miguel will guide you"
-        case .intellectual: return "Professor Peter will guide you"
+        case .traditional: return "Father Anthony will walk with you"
+        case .progressive: return "Sister Ana will walk with you"
+        case .contemporary: return "Brother Miguel will walk with you"
+        case .intellectual: return "Professor Peter will walk with you"
         }
     }
 }
