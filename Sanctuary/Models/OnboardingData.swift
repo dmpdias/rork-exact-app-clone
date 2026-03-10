@@ -363,6 +363,30 @@ nonisolated enum SpiritualStyle: String, CaseIterable, Identifiable, Codable, Se
     }
 }
 
+nonisolated enum DailyRhythm: String, CaseIterable, Identifiable, Codable, Sendable {
+    case daily = "A Daily Devotion"
+    case weekly = "A Weekly Walk"
+    case spiritLed = "When the Spirit Leads"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .daily: return "sunrise.fill"
+        case .weekly: return "building.columns"
+        case .spiritLed: return "wind"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .daily: return "A few sacred minutes each morning to ground your day in grace."
+        case .weekly: return "A deeper weekly retreat into prayer, reflection, and the Word."
+        case .spiritLed: return "No schedule, no pressure. Come as you are, when you feel the call."
+        }
+    }
+}
+
 nonisolated struct PersonalizedPlan: Sendable {
     let userName: String
     let spiritualStyle: SpiritualStyle

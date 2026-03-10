@@ -25,7 +25,7 @@ struct OnboardingView: View {
             }
 
             VStack(spacing: 0) {
-                if vm.currentStep > 1 && vm.currentStep <= vm.totalSteps && !vm.showCongrats && !vm.showRating {
+                if vm.currentStep > 1 && vm.currentStep < vm.totalSteps && !vm.showCongrats && !vm.showRating {
                     topBar
                 }
 
@@ -35,7 +35,7 @@ struct OnboardingView: View {
                     spiritualPathScreen.tag(2)
                     faithPracticeScreen.tag(3)
                     planScreen.tag(4)
-                    signatureScreen.tag(5)
+                    covenantScreen.tag(5)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.spring(response: 0.55, dampingFraction: 0.82), value: vm.currentStep)
@@ -618,6 +618,8 @@ struct OnboardingView: View {
     }
 
     @State private var pathwaySelectHaptic: Int = 0
+    @State private var covenantHapticTrigger: Int = 0
+    @State private var rhythmSelectHaptic: Int = 0
 
     // MARK: - Spiritual Path
 
@@ -1054,103 +1056,353 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Signature
+    // MARK: - Covenant Screen (Step 5)
 
-    private var signatureScreen: some View {
-        VStack(spacing: 0) {
-            Spacer()
+    private var covenantScreen: some View {
+        ZStack {
+            Color(red: 0.99, green: 0.98, blue: 0.97)
+                .ignoresSafeArea()
 
-            VStack(spacing: 16) {
-                Image(systemName: "signature")
-                    .font(.system(size: 32))
-                    .foregroundStyle(Theme.goldAccent)
-
-                Text("Seal your covenant.")
-                    .font(.system(size: 28, weight: .bold, design: .serif))
-                    .foregroundStyle(Theme.textDark)
-
-                Text("Place your mark below \u{2014} a covenant\nbetween you and the path ahead.")
-                    .font(.system(.subheadline, design: .serif))
-                    .foregroundStyle(Theme.textMedium)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(3)
-
-                Text("A covenant is a sacred promise. Take your time.")
-                    .font(.system(size: 13, design: .serif))
-                    .italic()
-                    .foregroundStyle(Theme.textLight)
-                    .padding(.top, 2)
+            if vm.lightLeakActive {
+                Color.white
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(100)
             }
 
-            Spacer().frame(height: 32)
+            VStack(spacing: 0) {
+                HStack {
+                    Button {
+                        vm.goBackCovenantSub()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Theme.textMedium)
+                            .frame(width: 44, height: 44)
+                    }
+
+                    Spacer()
+
+                    covenantLogoAnchor
+
+                    Spacer()
+
+                    Color.clear.frame(width: 44, height: 44)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+
+                Spacer()
+
+                ZStack {
+                    if vm.covenantSubStep == 0 {
+                        covenantRhythmStep
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .offset(x: vm.covenantTransitionForward ? 60 : -60)),
+                                removal: .opacity.combined(with: .offset(x: vm.covenantTransitionForward ? -60 : 60))
+                            ))
+                    } else if vm.covenantSubStep == 1 {
+                        covenantReminderStep
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .offset(x: vm.covenantTransitionForward ? 60 : -60)),
+                                removal: .opacity.combined(with: .offset(x: vm.covenantTransitionForward ? -60 : 60))
+                            ))
+                    } else if vm.covenantSubStep == 2 {
+                        covenantSignatureStep
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .offset(x: vm.covenantTransitionForward ? 60 : -60)),
+                                removal: .opacity.combined(with: .offset(x: vm.covenantTransitionForward ? -60 : 60))
+                            ))
+                    }
+                }
+                .sensoryFeedback(.selection, trigger: covenantHapticTrigger)
+
+                Spacer()
+
+                VStack(spacing: 14) {
+                    if vm.covenantSubStep < 2 {
+                        Button {
+                            covenantHapticTrigger += 1
+                            if vm.covenantSubStep == 1 {
+                                vm.requestNotificationPermission()
+                            }
+                            vm.advanceCovenantSub()
+                        } label: {
+                            HStack(spacing: 8) {
+                                Text(covenantButtonTitle)
+                                    .font(.system(.body, design: .default))
+                                    .fontWeight(.semibold)
+                                    .tracking(0.3)
+
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                            }
+                            .foregroundStyle(Theme.cream)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Theme.cardBrown, Theme.cardOlive],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                            )
+                        }
+                        .padding(.horizontal, 32)
+                        .opacity(vm.canProceedCovenantSub && vm.covenantButtonVisible ? 1 : 0.35)
+                        .disabled(!vm.canProceedCovenantSub)
+                        .scaleEffect(vm.covenantButtonVisible && vm.canProceedCovenantSub ? 1.0 : 0.96)
+                    } else {
+                        Button {
+                            withAnimation(.easeOut(duration: 0.8)) {
+                                vm.lightLeakActive = true
+                            }
+                            Task {
+                                try? await Task.sleep(for: .milliseconds(800))
+                                vm.triggerCongrats()
+                            }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Text("Enter the Sanctuary")
+                                    .font(.system(.body, design: .serif))
+                                    .fontWeight(.semibold)
+
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundStyle(Theme.cream)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: vm.hasSigned ? [Theme.cardBrown, Theme.cardOlive] : [Theme.sandDark.opacity(0.4), Theme.sandDark.opacity(0.3)],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                            )
+                        }
+                        .disabled(!vm.hasSigned)
+                        .padding(.horizontal, 32)
+                        .opacity(vm.hasSigned ? 1 : 0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: vm.hasSigned)
+                        .sensoryFeedback(.success, trigger: vm.lightLeakActive)
+                    }
+
+                    Text(covenantFooterText)
+                        .font(.system(size: 12, design: .serif))
+                        .italic()
+                        .foregroundStyle(Theme.textLight)
+                }
+                .padding(.bottom, 40)
+            }
+        }
+        .onAppear {
+            vm.covenantSubStep = 0
+            vm.covenantButtonVisible = false
+            vm.lightLeakActive = false
+            Task {
+                try? await Task.sleep(for: .milliseconds(500))
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    vm.covenantButtonVisible = true
+                }
+            }
+        }
+    }
+
+    private var covenantLogoAnchor: some View {
+        ShimmerLogoView(logoOpacity: 1.0)
+            .frame(height: 60)
+    }
+
+    private var covenantButtonTitle: String {
+        switch vm.covenantSubStep {
+        case 0: return "Step Forward"
+        case 1: return "Set Time"
+        default: return "Continue"
+        }
+    }
+
+    private var covenantFooterText: String {
+        switch vm.covenantSubStep {
+        case 0: return "Next: Set your sacred reminder"
+        case 1: return "Next: Seal your commitment"
+        case 2: return vm.hasSigned ? "" : "Your signature seals this sacred moment"
+        default: return ""
+        }
+    }
+
+    // MARK: - Covenant Sub-Steps
+
+    private var covenantRhythmStep: some View {
+        VStack(spacing: 32) {
+            Text("In what rhythm will\nyou walk with us?")
+                .font(.system(size: 30, weight: .bold, design: .serif))
+                .foregroundStyle(Theme.textDark)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+
+            VStack(spacing: 12) {
+                ForEach(DailyRhythm.allCases) { rhythm in
+                    Button {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                            vm.selectedDailyRhythm = rhythm
+                        }
+                        rhythmSelectHaptic += 1
+                    } label: {
+                        rhythmCard(rhythm)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 24)
+            .sensoryFeedback(.impact(weight: .medium), trigger: rhythmSelectHaptic)
+        }
+    }
+
+    private func rhythmCard(_ rhythm: DailyRhythm) -> some View {
+        let isSelected = vm.selectedDailyRhythm == rhythm
+
+        return HStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(isSelected ? Theme.goldAccent.opacity(0.18) : Color(red: 0.96, green: 0.94, blue: 0.91))
+                    .frame(width: 52, height: 52)
+
+                Image(systemName: rhythm.icon)
+                    .font(.system(size: 22))
+                    .foregroundStyle(isSelected ? Theme.goldDark : Theme.textMedium)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(rhythm.rawValue)
+                    .font(.system(size: 17, weight: .semibold, design: .serif))
+                    .foregroundStyle(isSelected ? Theme.textDark : Theme.textMedium)
+
+                Text(rhythm.subtitle)
+                    .font(.system(size: 13, design: .serif))
+                    .foregroundStyle(Theme.textLight)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 4)
+
+            ZStack {
+                Circle()
+                    .strokeBorder(isSelected ? Theme.goldAccent : Theme.sandDark.opacity(0.2), lineWidth: 2)
+                    .frame(width: 26, height: 26)
+
+                if isSelected {
+                    Circle()
+                        .fill(Theme.goldAccent)
+                        .frame(width: 16, height: 16)
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(
+                    isSelected
+                    ? Color.white.opacity(0.85)
+                    : Color.white.opacity(0.45)
+                )
+                .strokeBorder(
+                    isSelected
+                    ? Theme.goldAccent.opacity(0.6)
+                    : Theme.sandDark.opacity(0.08),
+                    lineWidth: isSelected ? 1.5 : 1
+                )
+                .shadow(color: isSelected ? Theme.goldAccent.opacity(0.15) : Color.black.opacity(0.03), radius: isSelected ? 12 : 4, y: 2)
+        )
+        .scaleEffect(isSelected ? 1.015 : 1.0)
+        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: isSelected)
+    }
+
+    private var covenantReminderStep: some View {
+        VStack(spacing: 32) {
+            Text("When shall we call\nyou to prayer?")
+                .font(.system(size: 30, weight: .bold, design: .serif))
+                .foregroundStyle(Theme.textDark)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+
+            Text("A gentle reminder to pause, breathe,\nand enter your sacred time.")
+                .font(.system(size: 15, design: .serif))
+                .foregroundStyle(Theme.textMedium)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+
+            DatePicker(
+                "Prayer Time",
+                selection: $vm.reminderTime,
+                displayedComponents: .hourAndMinute
+            )
+            .datePickerStyle(.wheel)
+            .labelsHidden()
+            .frame(height: 160)
+            .padding(.horizontal, 48)
+
+            Text("Amave would like to gently remind\nyou of your quiet time.")
+                .font(.system(size: 13, design: .serif))
+                .italic()
+                .foregroundStyle(Theme.textLight)
+                .multilineTextAlignment(.center)
+                .lineSpacing(2)
+        }
+    }
+
+    private var covenantSignatureStep: some View {
+        VStack(spacing: 24) {
+            Text("Seal your Commitment.")
+                .font(.system(size: 30, weight: .bold, design: .serif))
+                .foregroundStyle(Theme.textDark)
+                .multilineTextAlignment(.center)
+
+            Text("I commit to this space as a sanctuary\nfor my soul, to seek peace, and to walk\nin grace with the Amave community.")
+                .font(.system(size: 15, design: .serif))
+                .italic()
+                .foregroundStyle(Theme.textMedium)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+                .padding(.horizontal, 16)
 
             VStack(spacing: 0) {
                 SignatureCanvasView(
                     hasDrawn: $vm.hasSigned,
                     inkColor: UIColor(Theme.textDark),
-                    lineWidth: 3
+                    lineWidth: 2.5
                 )
-                .frame(height: 160)
+                .frame(height: 140)
 
-                Rectangle()
-                    .fill(Theme.textLight.opacity(0.3))
-                    .frame(height: 1)
-                    .padding(.horizontal, 24)
+                LinearGradient(
+                    colors: [Theme.goldAccent.opacity(0.1), Theme.goldAccent.opacity(0.5), Theme.goldAccent.opacity(0.1)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(height: 1.5)
+                .padding(.horizontal, 24)
 
                 Text(vm.userName.isEmpty ? "Your Name" : vm.userName)
                     .font(.system(.caption, design: .serif))
                     .foregroundStyle(Theme.textLight)
-                    .padding(.top, 8)
+                    .tracking(1)
+                    .padding(.top, 10)
             }
             .padding(20)
             .background(
                 RoundedRectangle(cornerRadius: 20)
                     .fill(Color.white.opacity(0.5))
-                    .strokeBorder(vm.hasSigned ? Theme.goldAccent.opacity(0.3) : Theme.sandDark.opacity(0.2), lineWidth: 1)
+                    .strokeBorder(vm.hasSigned ? Theme.goldAccent.opacity(0.3) : Theme.sandDark.opacity(0.15), lineWidth: 1)
             )
             .padding(.horizontal, 32)
-
-            Spacer()
-
-            VStack(spacing: 16) {
-                Button {
-                    vm.triggerCongrats()
-                } label: {
-                    HStack(spacing: 10) {
-                        Text("Amen. I commit.")
-                            .font(.system(.body, design: .serif))
-                            .fontWeight(.semibold)
-
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .foregroundStyle(Theme.cream)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: vm.hasSigned ? [Theme.cardBrown, Theme.cardOlive] : [Theme.sandDark.opacity(0.4), Theme.sandDark.opacity(0.3)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                    )
-                }
-                .disabled(!vm.hasSigned)
-                .padding(.horizontal, 32)
-                .animation(.spring(response: 0.3), value: vm.hasSigned)
-                .sensoryFeedback(.impact(weight: .heavy), trigger: vm.showCongrats)
-
-                if !vm.hasSigned {
-                    Text("Your signature seals this sacred moment")
-                        .font(.system(size: 13, design: .serif))
-                        .italic()
-                        .foregroundStyle(Theme.textLight)
-                }
-            }
-            .padding(.bottom, 50)
         }
     }
 

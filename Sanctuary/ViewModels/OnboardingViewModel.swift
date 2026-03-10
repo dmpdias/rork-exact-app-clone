@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 @Observable
 @MainActor
@@ -19,6 +20,19 @@ class OnboardingViewModel {
     var showInsight: Bool = false
     var planGenerated: Bool = false
     var hasSigned: Bool = false
+    var selectedDailyRhythm: DailyRhythm?
+    var covenantSubStep: Int = 0
+    var covenantTransitionForward: Bool = true
+    var reminderTime: Date = {
+        var components = DateComponents()
+        components.hour = 7
+        components.minute = 0
+        return Calendar.current.date(from: components) ?? Date()
+    }()
+    var notificationPermissionGranted: Bool = false
+    var notificationRequested: Bool = false
+    var covenantButtonVisible: Bool = false
+    var lightLeakActive: Bool = false
     var selectedTestimonialReaction: String? = nil
     var showCongrats: Bool = false
     var showRating: Bool = false
@@ -30,6 +44,61 @@ class OnboardingViewModel {
     var pathwayCardsRevealed: Int = 0
 
     let totalSteps: Int = 5
+
+    func advanceCovenantSub() {
+        covenantButtonVisible = false
+        if covenantSubStep < 2 {
+            covenantTransitionForward = true
+            withAnimation(.easeInOut(duration: 0.8)) {
+                covenantSubStep += 1
+            }
+            Task {
+                try? await Task.sleep(for: .milliseconds(400))
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    covenantButtonVisible = true
+                }
+            }
+        }
+    }
+
+    func goBackCovenantSub() {
+        if covenantSubStep > 0 {
+            covenantButtonVisible = false
+            covenantTransitionForward = false
+            withAnimation(.easeInOut(duration: 0.8)) {
+                covenantSubStep -= 1
+            }
+            Task {
+                try? await Task.sleep(for: .milliseconds(400))
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    covenantButtonVisible = true
+                }
+            }
+        } else {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                currentStep = 4
+            }
+        }
+    }
+
+    var canProceedCovenantSub: Bool {
+        switch covenantSubStep {
+        case 0: return selectedDailyRhythm != nil
+        case 1: return true
+        case 2: return hasSigned
+        default: return false
+        }
+    }
+
+    func requestNotificationPermission() {
+        guard !notificationRequested else { return }
+        notificationRequested = true
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+            Task { @MainActor in
+                self.notificationPermissionGranted = granted
+            }
+        }
+    }
     var showCountryPicker: Bool = false
     var isPreparingInsight: Bool = false
     var preparingText: String = ""
