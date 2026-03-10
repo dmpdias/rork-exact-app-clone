@@ -25,7 +25,7 @@ class OnboardingViewModel {
     var ratingStars: Int = 0
     var countrySearchText: String = ""
 
-    let totalSteps: Int = 6
+    let totalSteps: Int = 5
     var showCountryPicker: Bool = false
 
     var progress: Double {
