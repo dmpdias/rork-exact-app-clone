@@ -25,7 +25,7 @@ struct OnboardingView: View {
             }
 
             VStack(spacing: 0) {
-                if vm.currentStep > 0 && vm.currentStep <= vm.totalSteps && !vm.showCongrats && !vm.showRating {
+                if vm.currentStep > 1 && vm.currentStep <= vm.totalSteps && !vm.showCongrats && !vm.showRating {
                     topBar
                 }
 
@@ -261,209 +261,315 @@ struct OnboardingView: View {
 
     // MARK: - About You
 
+    @State private var aboutYouHapticTrigger: Int = 0
+
     private var aboutYouScreen: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Step 1 of 5")
-                        .font(.system(size: 12, weight: .medium, design: .serif))
-                        .foregroundStyle(Theme.goldDark)
-                        .padding(.horizontal, 24)
+        ZStack {
+            Color(red: 0.99, green: 0.98, blue: 0.97)
+                .ignoresSafeArea()
 
-                    questionHeader(
-                        label: "BEFORE WE BEGIN",
-                        title: "Let us know who\nwe walk beside.",
-                        subtitle: "So we may prepare a path that speaks to your heart."
-                    )
-
-                    Text("Every soul has a name, a story, and a home. Yours matters to us.")
-                        .font(.system(size: 13, design: .serif))
-                        .italic()
-                        .foregroundStyle(Theme.textLight)
-                        .padding(.horizontal, 24)
-                        .padding(.top, 4)
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("YOUR NAME")
-                        .font(.system(size: 11, weight: .semibold))
-                        .tracking(1.5)
-                        .foregroundStyle(Theme.textLight)
-
-                    TextField("", text: $vm.userName, prompt: Text("Enter your first name").foregroundStyle(Theme.textLight.opacity(0.6)))
-                        .font(.system(size: 20, design: .serif))
-                        .foregroundStyle(Theme.textDark)
-                        .padding(.vertical, 14)
-                        .padding(.horizontal, 20)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Theme.sandLight.opacity(0.6))
-                                .strokeBorder(Theme.sandDark.opacity(0.2), lineWidth: 1)
-                        )
-                }
-                .padding(.horizontal, 24)
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("YOUR AGE")
-                        .font(.system(size: 11, weight: .semibold))
-                        .tracking(1.5)
-                        .foregroundStyle(Theme.textLight)
-                        .padding(.horizontal, 24)
-
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                        ForEach(AgeRange.allCases) { age in
-                            Button {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                    vm.selectedAge = age
-                                }
-                            } label: {
-                                Text(age.rawValue)
-                                    .font(.system(.subheadline, design: .serif))
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(vm.selectedAge == age ? Theme.cream : Theme.textDark)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(vm.selectedAge == age ? Theme.cardBrown : Theme.sandLight.opacity(0.6))
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .strokeBorder(vm.selectedAge == age ? Theme.goldAccent.opacity(0.5) : Theme.sandDark.opacity(0.15), lineWidth: 1)
-                                    )
-                            }
-                            .buttonStyle(.plain)
-                            .sensoryFeedback(.selection, trigger: vm.selectedAge)
-                        }
+            VStack(spacing: 0) {
+                HStack {
+                    Button {
+                        vm.goBackAboutYouSub()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Theme.textMedium)
+                            .frame(width: 44, height: 44)
                     }
-                    .padding(.horizontal, 24)
+
+                    Spacer()
+
+                    aboutYouLogoAnchor
+
+                    Spacer()
+
+                    Color.clear.frame(width: 44, height: 44)
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
 
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("GENDER")
-                        .font(.system(size: 11, weight: .semibold))
-                        .tracking(1.5)
-                        .foregroundStyle(Theme.textLight)
-                        .padding(.horizontal, 24)
+                Spacer()
 
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                        ForEach(Gender.allCases) { gender in
-                            Button {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                    vm.selectedGender = gender
-                                }
-                            } label: {
-                                let isSelected = vm.selectedGender == gender
-                                HStack(spacing: 12) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(isSelected ? Theme.goldAccent.opacity(0.15) : Theme.sandLight.opacity(0.8))
-                                            .frame(width: 36, height: 36)
-
-                                        Image(systemName: gender.icon)
-                                            .font(.system(size: 15))
-                                            .foregroundStyle(isSelected ? Theme.goldDark : Theme.textLight)
-                                    }
-
-                                    Text(gender.rawValue)
-                                        .font(.system(size: 14, weight: .medium, design: .serif))
-                                        .foregroundStyle(isSelected ? Theme.textDark : Theme.textMedium)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.75)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 14)
-                                .padding(.horizontal, 14)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(isSelected ? Theme.goldAccent.opacity(0.06) : Theme.sandLight.opacity(0.4))
-                                        .strokeBorder(isSelected ? Theme.goldAccent.opacity(0.45) : Theme.sandDark.opacity(0.12), lineWidth: isSelected ? 1.5 : 1)
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            .sensoryFeedback(.selection, trigger: vm.selectedGender)
-                        }
+                ZStack {
+                    if vm.aboutYouSubStep == 0 {
+                        aboutYouNameStep
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .offset(x: vm.aboutYouTransitionDirection ? 60 : -60)),
+                                removal: .opacity.combined(with: .offset(x: vm.aboutYouTransitionDirection ? -60 : 60))
+                            ))
+                    } else if vm.aboutYouSubStep == 1 {
+                        aboutYouSeasonStep
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .offset(x: vm.aboutYouTransitionDirection ? 60 : -60)),
+                                removal: .opacity.combined(with: .offset(x: vm.aboutYouTransitionDirection ? -60 : 60))
+                            ))
+                    } else if vm.aboutYouSubStep == 2 {
+                        aboutYouCountryStep
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .offset(x: vm.aboutYouTransitionDirection ? 60 : -60)),
+                                removal: .opacity.combined(with: .offset(x: vm.aboutYouTransitionDirection ? -60 : 60))
+                            ))
                     }
-                    .padding(.horizontal, 24)
                 }
+                .sensoryFeedback(.selection, trigger: aboutYouHapticTrigger)
 
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("COUNTRY")
-                        .font(.system(size: 11, weight: .semibold))
-                        .tracking(1.5)
-                        .foregroundStyle(Theme.textLight)
-                        .padding(.horizontal, 24)
+                Spacer()
+
+                VStack(spacing: 14) {
+                    if !vm.userName.trimmingCharacters(in: .whitespaces).isEmpty {
+                        Text("Peace be with you, \(vm.userName.trimmingCharacters(in: .whitespaces)). We are preparing your path.")
+                            .font(.system(size: 13, design: .serif))
+                            .italic()
+                            .foregroundStyle(Theme.textLight)
+                            .multilineTextAlignment(.center)
+                            .transition(.opacity)
+                            .padding(.horizontal, 32)
+                    }
 
                     Button {
-                        vm.showCountryPicker = true
+                        aboutYouHapticTrigger += 1
+                        vm.advanceAboutYouSub()
                     } label: {
-                        HStack(spacing: 14) {
-                            ZStack {
-                                Circle()
-                                    .fill(vm.selectedCountry != nil ? Theme.goldAccent.opacity(0.12) : Theme.sandLight.opacity(0.8))
-                                    .frame(width: 40, height: 40)
+                        HStack(spacing: 8) {
+                            Text("Step Forward")
+                                .font(.system(.body, design: .default))
+                                .fontWeight(.semibold)
+                                .tracking(0.3)
 
-                                Image(systemName: "globe")
-                                    .font(.system(size: 17))
-                                    .foregroundStyle(vm.selectedCountry != nil ? Theme.goldDark : Theme.textLight)
-                            }
-
-                            Text(vm.selectedCountry?.rawValue ?? "Select your country")
-                                .font(.system(.body, design: .serif))
-                                .foregroundStyle(vm.selectedCountry != nil ? Theme.textDark : Theme.textLight.opacity(0.6))
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
+                            Image(systemName: "arrow.right")
                                 .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(Theme.textLight.opacity(0.5))
                         }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 16)
+                        .foregroundStyle(Theme.cream)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
                         .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Theme.sandLight.opacity(0.5))
-                                .strokeBorder(vm.selectedCountry != nil ? Theme.goldAccent.opacity(0.3) : Theme.sandDark.opacity(0.15), lineWidth: 1)
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Theme.cardBrown, Theme.cardOlive],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
                         )
                     }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, 24)
-                }
+                    .padding(.horizontal, 32)
+                    .opacity(vm.canProceedAboutYouSub && vm.aboutYouButtonVisible ? 1 : 0.35)
+                    .disabled(!vm.canProceedAboutYouSub)
+                    .scaleEffect(vm.aboutYouButtonVisible && vm.canProceedAboutYouSub ? 1.0 : 0.96)
 
-                if vm.isPreparingInsight {
-                    preparingInsightView(vm.preparingText)
-                        .transition(.opacity)
-                }
-
-                if vm.showInsight, let insight = vm.currentInsight {
-                    insightCard(insight)
-                        .transition(.asymmetric(
-                            insertion: .scale(scale: 0.95).combined(with: .opacity),
-                            removal: .opacity
-                        ))
-                }
-
-                Spacer(minLength: 120)
-            }
-            .padding(.top, 24)
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: 10) {
-                    continueButton { vm.nextStep() }
-                        .opacity(vm.canProceed ? 1 : 0.4)
-                        .disabled(!vm.canProceed)
-
-                    Text("Next: Your way of living the faith")
+                    Text("Next: Discover your spiritual style")
                         .font(.system(size: 12, design: .serif))
                         .italic()
                         .foregroundStyle(Theme.textLight)
-                        .padding(.bottom, 4)
+                }
+                .padding(.bottom, 40)
+            }
+        }
+        .onAppear {
+            vm.aboutYouSubStep = 0
+            vm.aboutYouButtonVisible = false
+            Task {
+                try? await Task.sleep(for: .milliseconds(500))
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    vm.aboutYouButtonVisible = true
                 }
             }
         }
-        .scrollDismissesKeyboard(.interactively)
-        .scrollIndicators(.hidden)
         .sheet(isPresented: $vm.showCountryPicker) {
             countryPickerSheet
+        }
+    }
+
+    private var aboutYouLogoAnchor: some View {
+        Image("BandIcon")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(height: 40)
+            .scaleEffect(vm.aboutYouButtonVisible ? 1.0 : 1.04)
+            .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: vm.aboutYouSubStep)
+    }
+
+    private var aboutYouNameStep: some View {
+        VStack(spacing: 24) {
+            Text("How shall we address\nyou in prayer?")
+                .font(.system(size: 30, weight: .bold, design: .serif))
+                .foregroundStyle(Theme.textDark)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+
+            VStack(spacing: 0) {
+                TextField("", text: $vm.userName, prompt: Text("Your first name").foregroundStyle(Theme.textLight.opacity(0.4)))
+                    .font(.system(size: 24, design: .serif))
+                    .foregroundStyle(Theme.textDark)
+                    .multilineTextAlignment(.center)
+                    .autocorrectionDisabled()
+                    .padding(.vertical, 12)
+                    .onChange(of: vm.userName) { _, newValue in
+                        if !newValue.trimmingCharacters(in: .whitespaces).isEmpty && !vm.aboutYouButtonVisible {
+                            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                vm.aboutYouButtonVisible = true
+                            }
+                        }
+                    }
+
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Theme.goldAccent.opacity(0.2), Theme.goldAccent.opacity(0.6), Theme.goldAccent.opacity(0.2)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(height: 1.5)
+                    .padding(.horizontal, 40)
+            }
+            .padding(.horizontal, 48)
+        }
+        .padding(.horizontal, 24)
+    }
+
+    private var aboutYouSeasonStep: some View {
+        VStack(spacing: 32) {
+            Text("What season of life\nare you in?")
+                .font(.system(size: 30, weight: .bold, design: .serif))
+                .foregroundStyle(Theme.textDark)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 14) {
+                    ForEach([
+                        AgeRange.teen,
+                        AgeRange.youngAdult,
+                        AgeRange.midLife,
+                        AgeRange.elder
+                    ]) { age in
+                        Button {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.65)) {
+                                vm.selectedAge = age
+                            }
+                            if !vm.aboutYouButtonVisible {
+                                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                    vm.aboutYouButtonVisible = true
+                                }
+                            }
+                        } label: {
+                            let isSelected = vm.selectedAge == age
+                            VStack(spacing: 10) {
+                                ZStack {
+                                    Circle()
+                                        .fill(isSelected ? Theme.goldAccent.opacity(0.15) : Color(red: 0.96, green: 0.94, blue: 0.91))
+                                        .frame(width: 56, height: 56)
+
+                                    Image(systemName: age.icon)
+                                        .font(.system(size: 22))
+                                        .foregroundStyle(isSelected ? Theme.goldDark : Theme.textLight)
+                                }
+
+                                VStack(spacing: 3) {
+                                    Text(age.label)
+                                        .font(.system(size: 15, weight: .semibold, design: .serif))
+                                        .foregroundStyle(isSelected ? Theme.textDark : Theme.textMedium)
+
+                                    Text(aboutYouAgeSubtitle(age))
+                                        .font(.system(size: 12, design: .default))
+                                        .foregroundStyle(Theme.textLight)
+                                        .tracking(0.3)
+                                }
+                            }
+                            .frame(width: 90)
+                            .padding(.vertical, 18)
+                            .background(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .fill(isSelected ? Theme.goldAccent.opacity(0.06) : Color.white.opacity(0.6))
+                                    .strokeBorder(isSelected ? Theme.goldAccent.opacity(0.5) : Theme.sandDark.opacity(0.1), lineWidth: isSelected ? 2 : 1)
+                            )
+                            .scaleEffect(isSelected ? 1.05 : 1.0)
+                        }
+                        .buttonStyle(.plain)
+                        .sensoryFeedback(.selection, trigger: vm.selectedAge)
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+            .contentMargins(.horizontal, 8)
+        }
+    }
+
+    private func aboutYouAgeSubtitle(_ age: AgeRange) -> String {
+        switch age {
+        case .teen: return "Under 18"
+        case .youngAdult: return "18–35"
+        case .midLife: return "36–64"
+        case .elder: return "65+"
+        default: return age.rawValue
+        }
+    }
+
+    private var aboutYouCountryStep: some View {
+        VStack(spacing: 32) {
+            Text("Where do you\ncall home?")
+                .font(.system(size: 30, weight: .bold, design: .serif))
+                .foregroundStyle(Theme.textDark)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+
+            Button {
+                vm.showCountryPicker = true
+            } label: {
+                HStack(spacing: 16) {
+                    if let country = vm.selectedCountry {
+                        Text(country.flag)
+                            .font(.system(size: 28))
+
+                        Text(country.rawValue)
+                            .font(.system(size: 18, weight: .medium, design: .serif))
+                            .foregroundStyle(Theme.textDark)
+                    } else {
+                        ZStack {
+                            Circle()
+                                .fill(Color(red: 0.96, green: 0.94, blue: 0.91))
+                                .frame(width: 48, height: 48)
+
+                            Image(systemName: "globe")
+                                .font(.system(size: 20))
+                                .foregroundStyle(Theme.textLight)
+                        }
+
+                        Text("Select your country")
+                            .font(.system(size: 18, design: .serif))
+                            .foregroundStyle(Theme.textLight.opacity(0.6))
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Theme.textLight.opacity(0.5))
+                }
+                .padding(.vertical, 16)
+                .padding(.horizontal, 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(Color.white.opacity(0.6))
+                        .strokeBorder(
+                            vm.selectedCountry != nil ? Theme.goldAccent.opacity(0.4) : Theme.sandDark.opacity(0.12),
+                            lineWidth: vm.selectedCountry != nil ? 1.5 : 1
+                        )
+                )
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 32)
+            .onChange(of: vm.selectedCountry) { _, newValue in
+                if newValue != nil && !vm.aboutYouButtonVisible {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        vm.aboutYouButtonVisible = true
+                    }
+                }
+            }
         }
     }
 

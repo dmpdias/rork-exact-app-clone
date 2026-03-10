@@ -9,6 +9,39 @@ nonisolated enum AgeRange: String, CaseIterable, Identifiable, Codable, Sendable
     case elder = "65+"
 
     var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .teen: return "Youth"
+        case .youngAdult: return "Young Adult"
+        case .adult: return "Adult"
+        case .midLife: return "Adult"
+        case .mature: return "Elder"
+        case .elder: return "Elder"
+        }
+    }
+
+    var ageDescription: String {
+        switch self {
+        case .teen: return "Under 18"
+        case .youngAdult: return "18–35"
+        case .adult: return "25–34"
+        case .midLife: return "36–64"
+        case .mature: return "50–64"
+        case .elder: return "65+"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .teen: return "leaf"
+        case .youngAdult: return "sunrise"
+        case .adult: return "sun.max"
+        case .midLife: return "sun.max.fill"
+        case .mature: return "moon.stars"
+        case .elder: return "sparkles"
+        }
+    }
 }
 
 nonisolated enum Gender: String, CaseIterable, Identifiable, Codable, Sendable {

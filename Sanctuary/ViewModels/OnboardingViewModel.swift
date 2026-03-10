@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 class OnboardingViewModel {
     var currentStep: Int = 0
+    var aboutYouSubStep: Int = 0
     var userName: String = ""
     var selectedAge: AgeRange?
     var selectedGender: Gender?
@@ -24,6 +25,8 @@ class OnboardingViewModel {
     var congratsAnimated: Bool = false
     var ratingStars: Int = 0
     var countrySearchText: String = ""
+    var aboutYouButtonVisible: Bool = false
+    var aboutYouTransitionDirection: Bool = true
 
     let totalSteps: Int = 5
     var showCountryPicker: Bool = false
@@ -43,13 +46,65 @@ class OnboardingViewModel {
         }
     }
 
+    var canProceedAboutYouSub: Bool {
+        switch aboutYouSubStep {
+        case 0: return !userName.trimmingCharacters(in: .whitespaces).isEmpty
+        case 1: return selectedAge != nil
+        case 2: return selectedCountry != nil
+        default: return false
+        }
+    }
+
     var canProceed: Bool {
         switch currentStep {
         case 0: return true
-        case 1: return !userName.trimmingCharacters(in: .whitespaces).isEmpty && selectedAge != nil && selectedGender != nil && selectedCountry != nil
+        case 1: return !userName.trimmingCharacters(in: .whitespaces).isEmpty && selectedAge != nil && selectedCountry != nil
         case 2: return selectedSpiritualStyle != nil
         case 3: return selectedPrayerFrequency != nil && selectedScriptureFrequency != nil
         default: return true
+        }
+    }
+
+    func advanceAboutYouSub() {
+        guard canProceedAboutYouSub else { return }
+        aboutYouButtonVisible = false
+        if aboutYouSubStep < 2 {
+            aboutYouTransitionDirection = true
+            withAnimation(.easeInOut(duration: 0.8)) {
+                aboutYouSubStep += 1
+            }
+            Task {
+                try? await Task.sleep(for: .milliseconds(400))
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    aboutYouButtonVisible = true
+                }
+            }
+        } else {
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) {
+                showInsight = false
+                isPreparingInsight = false
+                currentStep = 2
+            }
+        }
+    }
+
+    func goBackAboutYouSub() {
+        if aboutYouSubStep > 0 {
+            aboutYouButtonVisible = false
+            aboutYouTransitionDirection = false
+            withAnimation(.easeInOut(duration: 0.8)) {
+                aboutYouSubStep -= 1
+            }
+            Task {
+                try? await Task.sleep(for: .milliseconds(400))
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    aboutYouButtonVisible = true
+                }
+            }
+        } else {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                currentStep = 0
+            }
         }
     }
 
