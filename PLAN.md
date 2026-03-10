@@ -1,45 +1,56 @@
-# Amave — A Beautiful Faith & Devotion App
+# Animated Splash Welcome Screen for Amave
 
+**Overview**
+Transform the welcome screen (Step 0) into a cinematic, choreographed splash experience with the app's flame logo, a cathedral-inspired background, and a timed animation sequence that reveals content in stages.
 
-## Features
+---
 
-- **Personalized greeting** — Shows "Good night, David." with a warm, encouraging message like "You were faithful today."
-- **Spiritual moment card** — A large card with an inspirational quote and a "Begin your moment" button, showing how many souls are praying with you
-- **Weekly streak tracker** — Seven day-of-week circles with flame icons showing completed days, with a highlight ring on the current day
-- **Devotion score** — A circular arc of glowing dots surrounding a large score number (73), with an encouraging message and a "See what builds your score" button
-- **Daily scripture** — A beautifully styled scripture card with the verse text in italic serif, reference (e.g. JOHN 14:27), version label, and bookmark/share icons
-- **Activity log** — A list of today's spiritual activities (Morning Prayer, Scripture Reading, Daily Reflection, Week Streak) each with category labels, point values, and colored icons
-- **Five-tab navigation** — Home, Counselor, Community, Journey, and Profile tabs
-- **Bible progress indicator** — A small book icon in the top-right corner showing reading progress (78%)
-- **Sign in with Apple** — Native Apple authentication via AuthenticationServices
-- **Phone authentication** — Phone number sign-in with SMS verification code flow
-- **Gender & Country onboarding** — Collects gender and country during onboarding with personalized community insights
-- **Spiritual Path selection** — 2x2 card grid to choose faith style (Traditional, Progressive, Contemporary, Intellectual) which determines the Counselor persona throughout the app
+**Design & Visual Environment**
 
-## Design
+- **Background**: Deep warm gradient (dark charcoal to rich brown) evoking cathedral stone, with a soft radial gold glow behind the logo — like sunlight filtering through stained glass
+- **Glassmorphism overlay**: A warm cream-tinted translucent layer over the background for depth, giving the gold logo maximum contrast
+- **Floating gold particles**: Subtle animated dust motes drifting slowly, like light catching in a cathedral nave
 
-- **Warm beige/cream palette** — The entire app uses a warm sandy beige background with subtle scattered dot particles for texture
-- **Serif typography** — Large titles use New York (system serif) font for an elegant, editorial feel; section headers use small caps tracking
-- **Italic accents** — Encouraging messages and scripture text use italic serif styling
-- **Gold and brown tones** — Cards use warm olive/brown gradients; the "Begin your moment" button has a gold arrow accent
-- **Flame icons** — Weekly tracker uses small flame/candle symbols in dark circles for completed days
-- **Soft, rounded cards** — Content cards have large corner radii with subtle warm-toned backgrounds
-- **Activity icons** — Each activity has a unique soft-colored circular icon (warm pink for prayer, teal for reading, sage green for reflection, peach for bonus)
-- **Particle dots** — Small scattered dots across the background in varying warm tones for visual richness
-- **Frosted tab bar** — Bottom tab bar with a warm cream material background
-- **Minimalist reaction faces** — Canvas-drawn line-art faces for testimonial reactions, matching the app's elegant aesthetic
+---
 
-## Screens
+**Logo Animation (Center-Upper)**
 
-- **Onboarding (5 steps + post-screens)** — Welcome screen with Apple Sign In + begin journey, name/age/gender/country with improved icon-based gender cards and globe country selector + "Step 1 of 5" indicator, spiritual path selection (Traditional/Progressive/Contemporary/Intellectual with guide persona preview), prayer & scripture frequency with context descriptions and personalized insight, personalized plan based on all answers, ink signature commitment using PencilKit, congratulations overlay with animated seal, and App Store rating screen
-- **Guided Tutorial** — 6-step overlay tutorial on first home landing, walking users through each tab with animated icons and tab highlight indicators
-- **Login** — Sign-in page with Sign in with Apple button, email/phone toggle with segmented control, email+password or phone+verification code fields, branding, forgot password, and create account link back to onboarding
-- **Home** — The main scrollable screen containing all sections: greeting, spiritual moment card, weekly streak, devotion score with circular arc, scripture card, and activity log
-- **Counselor** — AI spiritual counselor chat
-- **Community** — Prayer wall, fellowship rankings, and prayer rooms
-- **Journey** — Structured courses, scripture studies, and growth paths
-- **Profile** — Full profile page with breathing golden halo avatar, 2x2 stats grid (prayers, scriptures, streak, blessings), compact devotion ring, horizontally scrollable milestone cards with progress rings, settings list with colored icons, and sign-out confirmation
+- The app's flame icon displayed large and centered in the upper-middle area
+- **Shimmer effect**: A diagonal gold light sweep crosses the logo every 3 seconds, like candlelight catching gold leaf
+- **Breathing pulse**: Slow, continuous scale animation (1.0 → 1.03) making the logo feel alive and sacred
+- Surrounded by a soft radial gold glow that pulses gently
 
-## App Icon
+---
 
-- A warm beige/gold gradient background with a small white flame or candle symbol centered, evoking spiritual warmth and devotion — matching the app's sandy, elegant aesthetic
+**Animation Choreography (Timed Reveal)**
+
+- **0–800ms**: Logo fades in from invisible to fully visible; background glow slowly intensifies
+- **800–1400ms**: "Amave" title fades in below the logo, followed by the bold serif headline **"Peace."**
+- **1400–2000ms**: Tagline and button stack slide up from the bottom with a spring bounce
+- **At 2000ms**: A "success" haptic fires (two quick taps) signaling the screen is ready for interaction
+
+---
+
+**Typography & Copy**
+
+- **App name**: "Amave" in large serif font
+- **Headline**: "Peace." in bold serif — a single powerful word
+- **Tagline**: "Your sacred companion for the Catholic life"
+- **Primary button**: "Enter the Sanctuary →" with a translucent glass-like body and soft glowing gold border
+- **Sign in with Apple**: Standard black button, appears in the final animation stage
+- **"I already have an account"**: Subtle underlined link at the bottom
+
+---
+
+**Button Design**
+
+- "Enter the Sanctuary" gets a premium translucent treatment — dark glass fill with a luminous gold border glow, replacing the current solid gradient
+- Both buttons slide up together with spring physics in the final animation beat
+
+---
+
+**Haptics**
+
+- Success haptic pattern at the 2000ms mark when everything is revealed and interactive
+- Existing button haptics preserved
+

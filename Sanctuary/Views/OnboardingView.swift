@@ -6,15 +6,23 @@ struct OnboardingView: View {
     @State private var particleSeeds: [ParticleSeed] = (0..<30).map { _ in
         ParticleSeed(x: Double.random(in: 0...1), y: Double.random(in: 0...1), size: Double.random(in: 2...5), opacity: Double.random(in: 0.1...0.3))
     }
-    @State private var flameFlicker: Bool = false
     @State private var planRevealed: Bool = false
     @State private var planNodeRevealCount: Int = 0
+    @State private var splashPhase: Int = 0
+    @State private var splashGlowIntensity: Double = 0.3
+    @State private var splashHapticFired: Bool = false
     var onComplete: () -> Void
     var onShowLogin: () -> Void
 
     var body: some View {
         ZStack {
-            backgroundLayer
+            if vm.currentStep == 0 {
+                CathedralBackgroundView(glowIntensity: splashGlowIntensity)
+                    .transition(.opacity)
+            } else {
+                backgroundLayer
+                    .transition(.opacity)
+            }
 
             VStack(spacing: 0) {
                 if vm.currentStep > 0 && vm.currentStep <= vm.totalSteps && !vm.showCongrats && !vm.showRating {
@@ -114,76 +122,47 @@ struct OnboardingView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: 24) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Theme.goldLight.opacity(0.3), Theme.goldAccent.opacity(0.05)],
-                                center: .center,
-                                startRadius: 20,
-                                endRadius: 80
-                            )
-                        )
-                        .frame(width: 160, height: 160)
+            VStack(spacing: 20) {
+                ShimmerLogoView(logoOpacity: splashPhase >= 1 ? 1.0 : 0.0)
+                    .frame(height: 160)
+                    .animation(.easeOut(duration: 0.8), value: splashPhase)
 
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 56))
+                VStack(spacing: 14) {
+                    Text("Amave")
+                        .font(.system(size: 44, weight: .bold, design: .serif))
+                        .foregroundStyle(Theme.cream)
+                        .opacity(splashPhase >= 2 ? 1 : 0)
+                        .offset(y: splashPhase >= 2 ? 0 : 8)
+                        .animation(.easeOut(duration: 0.5), value: splashPhase)
+
+                    Text("Peace.")
+                        .font(.system(size: 56, weight: .heavy, design: .serif))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [Theme.goldLight, Theme.goldDark],
-                                startPoint: .top,
-                                endPoint: .bottom
+                                colors: [Theme.goldLight, Theme.goldAccent],
+                                startPoint: .leading,
+                                endPoint: .trailing
                             )
                         )
-                        .scaleEffect(flameFlicker ? 1.03 : 0.97)
-                        .opacity(flameFlicker ? 1.0 : 0.85)
-                        .animation(
-                            .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
-                            value: flameFlicker
-                        )
-                }
-                .onAppear { flameFlicker = true }
-
-                VStack(spacing: 12) {
-                    Text("Amave")
-                        .font(.system(size: 42, weight: .bold, design: .serif))
-                        .foregroundStyle(Theme.textDark)
-
-                    Text("Your sacred companion for\nthe Catholic life")
-                        .font(.system(size: 18, design: .serif))
-                        .italic()
-                        .foregroundStyle(Theme.textMedium)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
+                        .opacity(splashPhase >= 2 ? 1 : 0)
+                        .offset(y: splashPhase >= 2 ? 0 : 12)
+                        .animation(.easeOut(duration: 0.6).delay(0.15), value: splashPhase)
                 }
 
-                Text("Walk with us in grace.\nNo judgment \u{2014} only accompaniment.")
-                    .font(.system(.subheadline, design: .serif))
-                    .foregroundStyle(Theme.textLight)
+                Text("Your sacred companion for\nthe Catholic life")
+                    .font(.system(size: 16, design: .serif))
+                    .italic()
+                    .foregroundStyle(Theme.textCream.opacity(0.8))
                     .multilineTextAlignment(.center)
-                    .lineSpacing(3)
-                    .padding(.top, 8)
+                    .lineSpacing(4)
+                    .opacity(splashPhase >= 3 ? 1 : 0)
+                    .offset(y: splashPhase >= 3 ? 0 : 16)
+                    .animation(.spring(response: 0.6, dampingFraction: 0.75), value: splashPhase)
             }
 
             Spacer()
 
             VStack(spacing: 14) {
-                SignInWithAppleButton(.signUp) { request in
-                    request.requestedScopes = [.fullName, .email]
-                } onCompletion: { result in
-                    switch result {
-                    case .success:
-                        onComplete()
-                    case .failure:
-                        break
-                    }
-                }
-                .signInWithAppleButtonStyle(.black)
-                .frame(height: 52)
-                .clipShape(.rect(cornerRadius: 26))
-                .padding(.horizontal, 32)
-
                 Button {
                     withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) {
                         vm.currentStep = 1
@@ -202,16 +181,37 @@ struct OnboardingView: View {
                     .padding(.vertical, 18)
                     .background(
                         Capsule()
-                            .fill(
+                            .fill(Color.white.opacity(0.08))
+                    )
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(
                                 LinearGradient(
-                                    colors: [Theme.cardBrown, Theme.cardOlive],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
+                                    colors: [Theme.goldLight.opacity(0.6), Theme.goldAccent.opacity(0.3), Theme.goldLight.opacity(0.6)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
                             )
                     )
+                    .shadow(color: Theme.goldAccent.opacity(0.2), radius: 12, y: 4)
                 }
                 .sensoryFeedback(.impact(flexibility: .soft), trigger: vm.currentStep)
+                .padding(.horizontal, 32)
+
+                SignInWithAppleButton(.signUp) { request in
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { result in
+                    switch result {
+                    case .success:
+                        onComplete()
+                    case .failure:
+                        break
+                    }
+                }
+                .signInWithAppleButtonStyle(.white)
+                .frame(height: 52)
+                .clipShape(.rect(cornerRadius: 26))
                 .padding(.horizontal, 32)
 
                 Button {
@@ -219,11 +219,43 @@ struct OnboardingView: View {
                 } label: {
                     Text("I already have an account")
                         .font(.system(.subheadline, design: .serif))
-                        .foregroundStyle(Theme.textMedium)
+                        .foregroundStyle(Theme.textCream.opacity(0.6))
                         .underline()
                 }
             }
+            .opacity(splashPhase >= 3 ? 1 : 0)
+            .offset(y: splashPhase >= 3 ? 0 : 40)
+            .animation(.spring(response: 0.65, dampingFraction: 0.72), value: splashPhase)
             .padding(.bottom, 50)
+        }
+        .onAppear {
+            startSplashChoreography()
+        }
+        .sensoryFeedback(.success, trigger: splashHapticFired)
+    }
+
+    private func startSplashChoreography() {
+        guard splashPhase == 0 else { return }
+        Task {
+            withAnimation(.easeOut(duration: 0.8)) {
+                splashPhase = 1
+                splashGlowIntensity = 0.6
+            }
+
+            try? await Task.sleep(for: .milliseconds(800))
+            withAnimation(.easeOut(duration: 0.5)) {
+                splashPhase = 2
+                splashGlowIntensity = 0.85
+            }
+
+            try? await Task.sleep(for: .milliseconds(600))
+            withAnimation(.spring(response: 0.65, dampingFraction: 0.72)) {
+                splashPhase = 3
+                splashGlowIntensity = 1.0
+            }
+
+            try? await Task.sleep(for: .milliseconds(600))
+            splashHapticFired = true
         }
     }
 
