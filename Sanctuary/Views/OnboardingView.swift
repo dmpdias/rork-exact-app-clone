@@ -763,11 +763,16 @@ struct OnboardingView: View {
             Color(red: 0.99, green: 0.98, blue: 0.97)
                 .ignoresSafeArea()
 
-            if vm.lightLeakActive {
+            if vm.showWelcomeInterstitial {
+                sacredTransitionOverlay
+                    .zIndex(100)
+            }
+
+            if vm.whiteDissolveActive {
                 Color.white
                     .ignoresSafeArea()
                     .transition(.opacity)
-                    .zIndex(100)
+                    .zIndex(200)
             }
 
             VStack(spacing: 0) {
@@ -857,16 +862,10 @@ struct OnboardingView: View {
                         .scaleEffect(vm.covenantButtonVisible && vm.canProceedCovenantSub ? 1.0 : 0.96)
                     } else {
                         Button {
-                            withAnimation(.easeOut(duration: 0.8)) {
-                                vm.lightLeakActive = true
-                            }
-                            Task {
-                                try? await Task.sleep(for: .milliseconds(800))
-                                onComplete()
-                            }
+                            beginSacredTransition()
                         } label: {
                             HStack(spacing: 10) {
-                                Text("Enter the Sanctuary")
+                                Text("Amen. I commit")
                                     .font(.system(.body, design: .serif))
                                     .fontWeight(.semibold)
 
@@ -891,7 +890,7 @@ struct OnboardingView: View {
                         .padding(.horizontal, 32)
                         .opacity(vm.hasSigned ? 1 : 0)
                         .animation(.spring(response: 0.5, dampingFraction: 0.7), value: vm.hasSigned)
-                        .sensoryFeedback(.success, trigger: vm.lightLeakActive)
+                        .sensoryFeedback(.success, trigger: vm.sacredTransitionComplete)
                     }
 
                     Text(covenantFooterText)
@@ -905,7 +904,10 @@ struct OnboardingView: View {
         .onAppear {
             vm.covenantSubStep = 0
             vm.covenantButtonVisible = false
-            vm.lightLeakActive = false
+            vm.signatureGlowing = false
+            vm.showWelcomeInterstitial = false
+            vm.whiteDissolveActive = false
+            vm.sacredTransitionComplete = false
             Task {
                 try? await Task.sleep(for: .milliseconds(500))
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
@@ -1224,6 +1226,63 @@ struct OnboardingView: View {
                 .strokeBorder(Theme.goldAccent.opacity(0.15), lineWidth: 1)
         )
         .padding(.horizontal, 24)
+    }
+
+    // MARK: - Sacred Transition
+
+    private var sacredTransitionOverlay: some View {
+        ZStack {
+            Color(red: 0.99, green: 0.98, blue: 0.97)
+                .ignoresSafeArea()
+
+            VStack(spacing: 28) {
+                ShimmerLogoView(logoOpacity: vm.welcomeLogoVisible ? 1.0 : 0.0)
+                    .frame(height: 80)
+                    .scaleEffect(vm.welcomeLogoVisible ? 1.0 : 0.9)
+                    .animation(.easeOut(duration: 0.6), value: vm.welcomeLogoVisible)
+
+                VStack(spacing: 8) {
+                    Text("Welcome home, \(vm.userName.trimmingCharacters(in: .whitespaces)).")
+                        .font(.system(size: 28, weight: .semibold, design: .serif))
+                        .foregroundStyle(Theme.textDark)
+                        .multilineTextAlignment(.center)
+                        .opacity(vm.welcomeTextVisible ? 1 : 0)
+                        .offset(y: vm.welcomeTextVisible ? 0 : 12)
+                        .animation(.easeOut(duration: 0.7), value: vm.welcomeTextVisible)
+                }
+            }
+        }
+        .transition(.opacity)
+    }
+
+    private func beginSacredTransition() {
+        vm.signatureGlowing = true
+        vm.sacredTransitionComplete = true
+
+        Task {
+            withAnimation(.easeOut(duration: 0.5)) {
+                vm.showWelcomeInterstitial = true
+            }
+
+            try? await Task.sleep(for: .milliseconds(300))
+            withAnimation(.easeOut(duration: 0.5)) {
+                vm.welcomeLogoVisible = true
+            }
+
+            try? await Task.sleep(for: .milliseconds(200))
+            withAnimation(.easeOut(duration: 0.6)) {
+                vm.welcomeTextVisible = true
+            }
+
+            try? await Task.sleep(for: .seconds(1.5))
+
+            withAnimation(.easeIn(duration: 0.6)) {
+                vm.whiteDissolveActive = true
+            }
+
+            try? await Task.sleep(for: .milliseconds(600))
+            onComplete()
+        }
     }
 
     // MARK: - Reusable Components

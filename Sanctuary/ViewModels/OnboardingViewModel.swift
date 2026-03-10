@@ -33,6 +33,12 @@ class OnboardingViewModel {
     var notificationRequested: Bool = false
     var covenantButtonVisible: Bool = false
     var lightLeakActive: Bool = false
+    var signatureGlowing: Bool = false
+    var showWelcomeInterstitial: Bool = false
+    var welcomeTextVisible: Bool = false
+    var welcomeLogoVisible: Bool = false
+    var whiteDissolveActive: Bool = false
+    var sacredTransitionComplete: Bool = false
 
     var countrySearchText: String = ""
     var aboutYouButtonVisible: Bool = false
