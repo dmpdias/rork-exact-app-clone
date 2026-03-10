@@ -11,7 +11,7 @@ class OnboardingViewModel {
     var selectedCountry: UserCountry?
     var massAttendance: MassAttendance?
     var selectedSacraments: [Sacrament] = []
-    var selectedSpiritualStyle: SpiritualStyle?
+    var selectedSpiritualStyles: Set<SpiritualStyle> = []
     var selectedPrayerFrequency: PrayerFrequency?
     var selectedScriptureFrequency: ScriptureFrequency?
     var selectedGoals: [SpiritualGoal] = []
@@ -27,6 +27,7 @@ class OnboardingViewModel {
     var countrySearchText: String = ""
     var aboutYouButtonVisible: Bool = false
     var aboutYouTransitionDirection: Bool = true
+    var pathwayCardsRevealed: Int = 0
 
     let totalSteps: Int = 5
     var showCountryPicker: Bool = false
@@ -59,9 +60,24 @@ class OnboardingViewModel {
         switch currentStep {
         case 0: return true
         case 1: return !userName.trimmingCharacters(in: .whitespaces).isEmpty && selectedAge != nil && selectedCountry != nil
-        case 2: return selectedSpiritualStyle != nil
+        case 2: return !selectedSpiritualStyles.isEmpty
         case 3: return selectedPrayerFrequency != nil && selectedScriptureFrequency != nil
         default: return true
+        }
+    }
+
+    var pathwayButtonText: String {
+        let count = selectedSpiritualStyles.count
+        if count == 0 { return "Choose your path" }
+        if count == 1 { return "Commit to this Path" }
+        return "Commit to these \(count) Paths"
+    }
+
+    func toggleSpiritualStyle(_ style: SpiritualStyle) {
+        if selectedSpiritualStyles.contains(style) {
+            selectedSpiritualStyles.remove(style)
+        } else {
+            selectedSpiritualStyles.insert(style)
         }
     }
 
@@ -188,7 +204,7 @@ class OnboardingViewModel {
         switch currentStep {
         case 1:
             return selectedCountry?.communityInsight(age: selectedAge, gender: selectedGender)
-        case 2: return selectedSpiritualStyle != nil ? "All paths lead to Christ. Every room in His house is yours." : nil
+        case 2: return !selectedSpiritualStyles.isEmpty ? "All paths lead to Christ. Every room in His house is yours." : nil
         case 3: return faithPracticeInsight
         default: return nil
         }
@@ -209,29 +225,29 @@ class OnboardingViewModel {
     func generatePlan() -> PersonalizedPlan {
         var commitments: [PlanCommitment] = []
 
-        let style = selectedSpiritualStyle ?? .traditional
+        let style = selectedSpiritualStyles.first ?? .traditional
         switch style {
         case .traditional:
             commitments.append(PlanCommitment(
-                icon: "building.columns.fill",
+                icon: "flame.fill",
                 title: "The Holy Rosary, guided daily",
                 description: "Walk through the mysteries each day with Father Anthony"
             ))
-        case .progressive:
+        case .contemplative:
             commitments.append(PlanCommitment(
-                icon: "hands.sparkles",
+                icon: "figure.mind.and.body",
                 title: "Morning prayers for mercy and the world",
                 description: "Start each day with prayers for mercy and justice with Sister Ana"
             ))
-        case .contemporary:
+        case .charismatic:
             commitments.append(PlanCommitment(
-                icon: "sparkles",
+                icon: "bird.fill",
                 title: "Five sacred minutes, every day",
                 description: "Honest conversations about faith with Brother Miguel"
             ))
-        case .intellectual:
+        case .devotional:
             commitments.append(PlanCommitment(
-                icon: "book.closed.fill",
+                icon: "rosette",
                 title: "Into the depths of the Word",
                 description: "Explore theology and philosophy of the Word with Professor Peter"
             ))
@@ -277,11 +293,11 @@ class OnboardingViewModel {
         switch style {
         case .traditional:
             verseInfo = ("Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.", "Proverbs 3:5-6")
-        case .progressive:
-            verseInfo = ("Blessed are the merciful, for they will be shown mercy. Blessed are the peacemakers, for they will be called children of God.", "Matthew 5:7-9")
-        case .contemporary:
+        case .contemplative:
+            verseInfo = ("Be still, and know that I am God. I will be exalted among the nations, I will be exalted in the earth.", "Psalm 46:10")
+        case .charismatic:
             verseInfo = ("The Lord is my shepherd, I lack nothing. He makes me lie down in green pastures, he leads me beside quiet waters, he refreshes my soul.", "Psalm 23:1-3")
-        case .intellectual:
+        case .devotional:
             verseInfo = ("In the beginning was the Word, and the Word was with God, and the Word was God. Through him all things were made.", "John 1:1-3")
         }
 

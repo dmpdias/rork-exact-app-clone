@@ -329,36 +329,36 @@ nonisolated enum Sacrament: String, CaseIterable, Identifiable, Codable, Sendabl
 
 nonisolated enum SpiritualStyle: String, CaseIterable, Identifiable, Codable, Sendable {
     case traditional = "Traditional"
-    case progressive = "Progressive"
-    case contemporary = "Contemporary"
-    case intellectual = "Intellectual"
+    case contemplative = "Contemplative"
+    case charismatic = "Charismatic"
+    case devotional = "Devotional"
 
     var id: String { rawValue }
 
     var icon: String {
         switch self {
-        case .traditional: return "building.columns.fill"
-        case .progressive: return "hands.sparkles"
-        case .contemporary: return "sparkles"
-        case .intellectual: return "book.closed.fill"
+        case .traditional: return "flame.fill"
+        case .contemplative: return "figure.mind.and.body"
+        case .charismatic: return "bird.fill"
+        case .devotional: return "rosette"
         }
     }
 
     var subtitle: String {
         switch self {
-        case .traditional: return "The Liturgy, Sacred Tradition, and the wisdom of the Saints"
-        case .progressive: return "Mercy, justice, and the living spirit of Vatican II"
-        case .contemporary: return "Faith woven into the fabric of everyday life"
-        case .intellectual: return "Theology, philosophy, and the great questions of the soul"
+        case .traditional: return "Rooted in the timeless beauty of the Liturgy and Sacred Tradition."
+        case .contemplative: return "Finding God in silence, meditation, and quiet reflection."
+        case .charismatic: return "Led by the Holy Spirit through praise, worship, and joyful prayer."
+        case .devotional: return "Growing in holiness through the Rosary, Novenas, and the Saints."
         }
     }
 
     var guideName: String {
         switch self {
         case .traditional: return "Father Anthony will walk with you"
-        case .progressive: return "Sister Ana will walk with you"
-        case .contemporary: return "Brother Miguel will walk with you"
-        case .intellectual: return "Professor Peter will walk with you"
+        case .contemplative: return "Sister Ana will walk with you"
+        case .charismatic: return "Brother Miguel will walk with you"
+        case .devotional: return "Professor Peter will walk with you"
         }
     }
 }

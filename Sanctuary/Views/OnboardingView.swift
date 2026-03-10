@@ -617,92 +617,105 @@ struct OnboardingView: View {
         .presentationDragIndicator(.visible)
     }
 
+    @State private var pathwaySelectHaptic: Int = 0
+
     // MARK: - Spiritual Path
 
     private var spiritualPathScreen: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                questionHeader(
-                    label: "YOUR WAY OF FAITH",
-                    title: "How does the Spirit\nmove in your life?",
-                    subtitle: "There are many rooms in the Father\u{2019}s house.\nWhich one calls to you?"
-                )
+        ZStack {
+            Color(red: 0.99, green: 0.98, blue: 0.97)
+                .ignoresSafeArea()
 
-                Text("This shapes your daily prayers, reflections, and the voice of your spiritual guide.")
-                    .font(.system(size: 13, design: .serif))
-                    .italic()
-                    .foregroundStyle(Theme.textLight)
-                    .padding(.horizontal, 24)
+            VStack(spacing: 0) {
+                Image("BandIcon")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 40)
+                    .scaleEffect(vm.selectedSpiritualStyles.isEmpty ? 1.0 : 1.04)
+                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: vm.selectedSpiritualStyles.count)
+                    .padding(.top, 16)
+                    .padding(.bottom, 12)
 
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    ForEach(Array(SpiritualStyle.allCases.enumerated()), id: \.element.id) { index, style in
-                        Button {
-                            withAnimation(.spring(response: 0.3)) {
-                                vm.selectedSpiritualStyle = style
-                                vm.showInsight = false
-                            }
-                        } label: {
-                            spiritualStyleCard(style)
+                ScrollView {
+                    VStack(spacing: 24) {
+                        VStack(spacing: 10) {
+                            Text("How do you seek the Lord?")
+                                .font(.system(size: 28, weight: .bold, design: .serif))
+                                .foregroundStyle(Theme.textDark)
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(2)
+
+                            Text("Choose the path that resonates most with your soul.")
+                                .font(.system(size: 15, design: .default))
+                                .foregroundStyle(Theme.textMedium)
+                                .multilineTextAlignment(.center)
+                                .tracking(0.2)
                         }
-                        .buttonStyle(.plain)
-                        .sensoryFeedback(.selection, trigger: vm.selectedSpiritualStyle)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+
+                        VStack(spacing: 12) {
+                            ForEach(Array(SpiritualStyle.allCases.enumerated()), id: \.element.id) { index, style in
+                                if index < vm.pathwayCardsRevealed {
+                                    Button {
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                                            vm.toggleSpiritualStyle(style)
+                                            vm.showInsight = false
+                                        }
+                                        pathwaySelectHaptic += 1
+                                    } label: {
+                                        pathwayCard(style)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .transition(.asymmetric(
+                                        insertion: .move(edge: .bottom).combined(with: .opacity),
+                                        removal: .opacity
+                                    ))
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 24)
+                        .sensoryFeedback(.impact(weight: .medium), trigger: pathwaySelectHaptic)
+
+                        if vm.showInsight, let insight = vm.currentInsight {
+                            insightCard(insight)
+                                .transition(.asymmetric(
+                                    insertion: .scale(scale: 0.95).combined(with: .opacity),
+                                    removal: .opacity
+                                ))
+                        }
+
+                        Spacer(minLength: 120)
+                    }
+                    .safeAreaInset(edge: .bottom) {
+                        continueButton(title: vm.pathwayButtonText) { vm.nextStep() }
+                            .opacity(vm.canProceed ? 1 : 0.4)
+                            .disabled(!vm.canProceed)
                     }
                 }
-                .padding(.horizontal, 24)
-
-                if let style = vm.selectedSpiritualStyle {
-                    HStack(spacing: 10) {
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 14))
-                            .foregroundStyle(Theme.goldDark)
-
-                        Text(style.guideName)
-                            .font(.system(.subheadline, design: .serif))
-                            .italic()
-                            .foregroundStyle(Theme.goldDark)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Theme.goldAccent.opacity(0.08))
-                            .strokeBorder(Theme.goldAccent.opacity(0.2), lineWidth: 1)
-                    )
-                    .padding(.horizontal, 24)
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .bottom).combined(with: .opacity),
-                        removal: .opacity
-                    ))
-                    .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.5), trigger: vm.selectedSpiritualStyle)
-                }
-
-                if vm.showInsight, let insight = vm.currentInsight {
-                    insightCard(insight)
-                        .transition(.asymmetric(
-                            insertion: .scale(scale: 0.95).combined(with: .opacity),
-                            removal: .opacity
-                        ))
-                }
-
-                Spacer(minLength: 100)
-            }
-            .padding(.top, 24)
-            .safeAreaInset(edge: .bottom) {
-                continueButton { vm.nextStep() }
-                    .opacity(vm.canProceed ? 1 : 0.4)
-                    .disabled(!vm.canProceed)
+                .scrollIndicators(.hidden)
             }
         }
-        .scrollIndicators(.hidden)
+        .onAppear {
+            vm.pathwayCardsRevealed = 0
+            Task {
+                for i in 1...SpiritualStyle.allCases.count {
+                    try? await Task.sleep(for: .milliseconds(100 * i))
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) {
+                        vm.pathwayCardsRevealed = i
+                    }
+                }
+            }
+        }
     }
 
-    private func spiritualStyleCard(_ style: SpiritualStyle) -> some View {
-        let isSelected = vm.selectedSpiritualStyle == style
+    private func pathwayCard(_ style: SpiritualStyle) -> some View {
+        let isSelected = vm.selectedSpiritualStyles.contains(style)
 
-        return VStack(spacing: 10) {
+        return HStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(isSelected ? Theme.goldAccent.opacity(0.15) : Theme.sandLight.opacity(0.8))
+                    .fill(isSelected ? Theme.goldAccent.opacity(0.18) : Color(red: 0.96, green: 0.94, blue: 0.91))
                     .frame(width: 52, height: 52)
 
                 Image(systemName: style.icon)
@@ -710,28 +723,51 @@ struct OnboardingView: View {
                     .foregroundStyle(isSelected ? Theme.goldDark : Theme.textMedium)
             }
 
-            Text(style.rawValue)
-                .font(.system(.subheadline, design: .serif))
-                .fontWeight(.semibold)
-                .foregroundStyle(isSelected ? Theme.textDark : Theme.textMedium)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(style.rawValue)
+                    .font(.system(size: 17, weight: .semibold, design: .serif))
+                    .foregroundStyle(isSelected ? Theme.textDark : Theme.textMedium)
 
-            Text(style.subtitle)
-                .font(.system(size: 11, design: .serif))
-                .foregroundStyle(Theme.textLight)
-                .multilineTextAlignment(.center)
-                .lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
+                Text(style.subtitle)
+                    .font(.system(size: 13, design: .serif))
+                    .foregroundStyle(Theme.textLight)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 4)
+
+            ZStack {
+                Circle()
+                    .strokeBorder(isSelected ? Theme.goldAccent : Theme.sandDark.opacity(0.2), lineWidth: 2)
+                    .frame(width: 26, height: 26)
+
+                if isSelected {
+                    Circle()
+                        .fill(Theme.goldAccent)
+                        .frame(width: 16, height: 16)
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
-        .padding(.horizontal, 8)
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(isSelected ? Theme.goldAccent.opacity(0.06) : Theme.sandLight.opacity(0.4))
-                .strokeBorder(isSelected ? Theme.goldAccent.opacity(0.5) : Theme.sandDark.opacity(0.1), lineWidth: isSelected ? 2 : 1)
-                .shadow(color: isSelected ? Theme.goldAccent.opacity(0.2) : .clear, radius: 8)
+            RoundedRectangle(cornerRadius: 18)
+                .fill(
+                    isSelected
+                    ? Color.white.opacity(0.85)
+                    : Color.white.opacity(0.45)
+                )
+                .strokeBorder(
+                    isSelected
+                    ? Theme.goldAccent.opacity(0.6)
+                    : Theme.sandDark.opacity(0.08),
+                    lineWidth: isSelected ? 1.5 : 1
+                )
+                .shadow(color: isSelected ? Theme.goldAccent.opacity(0.15) : Color.black.opacity(0.03), radius: isSelected ? 12 : 4, y: 2)
         )
-        .scaleEffect(isSelected ? 1.02 : 1.0)
+        .scaleEffect(isSelected ? 1.015 : 1.0)
+        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: isSelected)
     }
 
     // MARK: - Faith Practice
