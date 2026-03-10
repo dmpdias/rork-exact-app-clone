@@ -33,11 +33,7 @@ class OnboardingViewModel {
     var notificationRequested: Bool = false
     var covenantButtonVisible: Bool = false
     var lightLeakActive: Bool = false
-    var selectedTestimonialReaction: String? = nil
-    var showCongrats: Bool = false
-    var showRating: Bool = false
-    var congratsAnimated: Bool = false
-    var ratingStars: Int = 0
+
     var countrySearchText: String = ""
     var aboutYouButtonVisible: Bool = false
     var aboutYouTransitionDirection: Bool = true
@@ -234,22 +230,6 @@ class OnboardingViewModel {
             selectedSacraments.removeAll { $0 == sacrament }
         } else {
             selectedSacraments.append(sacrament)
-        }
-    }
-
-    func triggerCongrats() {
-        showCongrats = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.6)) {
-                self.congratsAnimated = true
-            }
-        }
-    }
-
-    func triggerRating() {
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-            showCongrats = false
-            showRating = true
         }
     }
 
