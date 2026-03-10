@@ -24,18 +24,14 @@ struct ShimmerLogoView: View {
                 .frame(width: 240, height: 240)
                 .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: glowPulse)
 
-            Image(systemName: "flame.fill")
-                .font(.system(size: 72, weight: .thin))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [Theme.goldLight, Theme.goldAccent, Theme.goldDark],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+            Image("BandIcon")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 120)
                 .overlay {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 72, weight: .thin))
+                    Image("BandIcon")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
                         .foregroundStyle(
                             LinearGradient(
                                 stops: [
