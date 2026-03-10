@@ -18,7 +18,7 @@ struct CathedralBackgroundView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.12, green: 0.10, blue: 0.08)
+            Color(red: 0.92, green: 0.86, blue: 0.78)
                 .ignoresSafeArea()
 
             GeometryReader { geo in
@@ -27,18 +27,18 @@ struct CathedralBackgroundView: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: geo.size.width, height: geo.size.height)
                     .clipped()
-                    .blur(radius: 3 * (1.0 - glowIntensity * 0.4))
+                    .blur(radius: 2 * (1.0 - glowIntensity * 0.3))
             }
             .ignoresSafeArea()
 
-            Color(red: 0.10, green: 0.08, blue: 0.06)
-                .opacity(0.55)
+            Color(red: 0.18, green: 0.14, blue: 0.10)
+                .opacity(0.35)
                 .ignoresSafeArea()
 
             RadialGradient(
                 colors: [
-                    Theme.goldAccent.opacity(0.12 * glowIntensity),
-                    Theme.goldDark.opacity(0.06 * glowIntensity),
+                    Theme.goldAccent.opacity(0.15 * glowIntensity),
+                    Theme.goldDark.opacity(0.08 * glowIntensity),
                     Color.clear
                 ],
                 center: .init(x: 0.5, y: 0.3),
